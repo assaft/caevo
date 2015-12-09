@@ -189,7 +189,7 @@ public class MLEventEventSameSent implements Sieve {
    * Load the previously trained classifiers from our model directory.
    */
   private void readClassifiers() {
-  	String path = modelDir + File.separator + eeSameSentName;
+  	String path = modelDir + "/" + eeSameSentName;
   	eeSameSentClassifier = Util.readClassifierFromFile(this.getClass().getResource(path));
   	if( eeSameSentClassifier == null )
   		System.out.println("ERROR: MLEventEventSameSent could not read its classifier at: " + path);

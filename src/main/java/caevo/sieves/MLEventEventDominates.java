@@ -152,7 +152,7 @@ public class MLEventEventDominates extends MLEventEventSameSent {
    * Load the previously trained classifiers from our model directory.
    */
   private void readClassifiers() {
-  	String path = modelDir + File.separator + modelName;
+  	String path = modelDir + "/" + modelName;
   	eeSameSentDominatesClassifier = Util.readClassifierFromFile(this.getClass().getResource(path));
   	if( eeSameSentDominatesClassifier == null )
   		System.out.println("ERROR: MLEventEventDominates could not read its classifier at: " + path);
