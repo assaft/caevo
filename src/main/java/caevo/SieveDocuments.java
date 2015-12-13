@@ -1,8 +1,10 @@
 package caevo;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -131,18 +133,54 @@ public class SieveDocuments {
   public void writeToXML(String path) {
   	writeToXML(new File(path));
   }
-  public void writeToXML(File file) {
+  public void writeToStream(OutputStream out) {
     try {
-      FileOutputStream out = new FileOutputStream(file);
       XMLOutputter op = new XMLOutputter(Format.getPrettyFormat());
       Document jdomDoc = toXML();
       op.output(jdomDoc, out);
       out.flush();
-      out.close();
     } catch (IOException e) {
       e.printStackTrace();
     }
   }
+  public void writeToXML(File file) {
+    FileOutputStream out = null;
+    try {
+      out = new FileOutputStream(file);
+      writeToStream(out);
+    } catch (IOException e) {
+      e.printStackTrace();
+    } finally {
+      if (out!=null) {
+        try {
+          out.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+  }
+  public String writeToString() {
+    String output = null;
+    ByteArrayOutputStream out = null;
+    try {
+      out = new ByteArrayOutputStream();
+      writeToStream(out);
+      output = out.toString("UTF-8");
+    } catch (IOException e) {
+      e.printStackTrace();
+    } finally {
+      if (out!=null) {
+        try {
+          out.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+    return output;
+  }
+
   
   public void outputMarkedUp(String dirpath) {
     // Create the directory.

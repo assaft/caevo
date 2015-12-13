@@ -1272,7 +1272,7 @@ public class Tempeval3Parser {
     return rawTextToParsed(filepath, bigone, parser, gsf);
   }
   
-  private static SieveDocument rawTextToParsed(String filename, String text, LexicalizedParser parser, GrammaticalStructureFactory gsf) {
+  public static SieveDocument rawTextToParsed(String filename, String text, LexicalizedParser parser, GrammaticalStructureFactory gsf) {
     List<List<HasWord>> sentencesNormInvertible = new ArrayList<List<HasWord>>();
     sentencesNormInvertible.addAll(Ling.getSentencesFromTextNormInvertible(text));
     System.out.println("Got " + sentencesNormInvertible.size() + " sentences.");

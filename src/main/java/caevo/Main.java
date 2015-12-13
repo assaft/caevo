@@ -653,6 +653,9 @@ public class Main {
 	 * @param path Single file or directory of text files.
 	 */
 	public SieveDocuments markupRawText(String path) {
+		return markupRawText(path,true);
+	}
+	public SieveDocuments markupRawText(String input, boolean isPath) {
 		SieveDocuments docs = new SieveDocuments();
 
 		// Initialize the parser.
@@ -665,27 +668,37 @@ public class Main {
 		GrammaticalStructureFactory gsf = tlp.grammaticalStructureFactory();
 
 		// If a directory: parse a directory of XML files.
-		if( Directory.isDirectory(path) ) {
-			for( String file : Directory.getFilesSorted(path) ) {
-				String subpath = path + File.separator + file;
-				SieveDocument doc = Tempeval3Parser.rawTextFileToParsed(subpath, parser, gsf);
+		if (isPath) {
+			String path = input;
+			if( Directory.isDirectory(path) ) {
+				for( String file : Directory.getFilesSorted(path) ) {
+					String subpath = path + File.separator + file;
+					SieveDocument doc = Tempeval3Parser.rawTextFileToParsed(subpath, parser, gsf);
+					docs.addDocument(doc);
+				}
+			}
+			// If a single file: parse it.
+			else {
+				SieveDocument doc = Tempeval3Parser.rawTextFileToParsed(path, parser, gsf);
 				docs.addDocument(doc);
 			}
-		}
-		// If a single file: parse it.
-		else {
-			SieveDocument doc = Tempeval3Parser.rawTextFileToParsed(path, parser, gsf);
+		} else {
+			SieveDocument doc = Tempeval3Parser.rawTextToParsed("input.txt", input, parser, gsf);
 			docs.addDocument(doc);
 		}
 
 		// Markup events, times, and tlinks.
 		markupAll(docs);
 		
-		// Output the InfoFile with the events in it.
-		String outpath = path + ".info.xml";
-		if( Directory.isDirectory(path) ) outpath = Directory.lastSubdirectory(path) + "-dir.info.xml";
-		docs.writeToXML(outpath);
-		System.out.println("Created " + outpath);
+		if (isPath) {
+			String path = input;
+
+			// Output the InfoFile with the events in it.
+			String outpath = path + ".info.xml";
+			if( Directory.isDirectory(path) ) outpath = Directory.lastSubdirectory(path) + "-dir.info.xml";
+			docs.writeToXML(outpath);
+			System.out.println("Created " + outpath);
+		}
 		
 		return docs;
 	}
