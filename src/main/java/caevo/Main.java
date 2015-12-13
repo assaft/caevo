@@ -716,16 +716,19 @@ public class Main {
 			eventClassifier = new TextEventClassifier(info, wordnet);
 			eventClassifier.loadClassifiers();
 		}
-		eventClassifier.extractEvents();
+		eventClassifier.extractEvents(info);
 	}
 	
 	/**
 	 * Assumes the SieveDocuments has its text parsed.
 	 */
 	public void markupTimexes(SieveDocuments info) {
-		if( timexClassifier == null )
+		if( timexClassifier == null ) {
 			timexClassifier = new TimexClassifier(info);
-		timexClassifier.markupTimex3();
+			timexClassifier.markupTimex3();
+		} else {
+			timexClassifier.markupTimex3(info);
+		}
 	}
 	
 	public SieveDocuments getDataset(DatasetType type, SieveDocuments docs) {

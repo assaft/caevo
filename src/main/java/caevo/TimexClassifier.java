@@ -81,7 +81,13 @@ public class TimexClassifier {
    * Use the global .info file and destructively mark it up for time expressions.
    */
   public void markupTimex3() {
-    for( SieveDocument doc : thedocs.getDocuments() ) {
+  	markupTimex3(thedocs);
+  }
+  /**
+   * Use the given documents object to destructively mark it up for time expressions.
+   */
+  public void markupTimex3(SieveDocuments docs) {
+    for( SieveDocument doc : docs.getDocuments() ) {
       if( debug ) System.out.println("doc = " + doc.getDocname());
       List<SieveSentence> sentences = doc.getSentences();
       List<Timex> dcts = doc.getDocstamp();
