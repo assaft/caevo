@@ -104,7 +104,7 @@ public class AdjacentVerbTimex implements Sieve {
 			List<TypedDependency> deps = sent.getDeps();
 			Tree tree = null;  // initialize to null so we don't end up loading it unless timexes are in the sentence
 			
-			if (debug == true) {
+			if (debug) {
 				System.out.println("DEBUG: adding tlinks from " + doc.getDocname() + " sentence " + sent.sentence());
 				}
 			
@@ -135,7 +135,7 @@ public class AdjacentVerbTimex implements Sieve {
 					boolean eventDoesGovernTimex = false;
 					boolean timexDoesGovernEvent = false;
 					GrammaticalRelation depRel = null;
-					TypedDependency eventTimeDep = null;
+					TypedDependency eventTimeDep;
 					// Update above booleans
 					// Check if event governs timex, and if so save the dependency relation depRel
 					eventTimeDep = getDepSentIndexPair(deps, event.getIndex(), timex.getTokenOffset());
@@ -171,7 +171,7 @@ public class AdjacentVerbTimex implements Sieve {
 					}
 					// if timex is before verb, use these rules...
 					else if (TIMEX_BEFORE_EVENT && timexIsBeforeVerb) {
-						if (eventDoesGovernTimex == false) {
+						if (!eventDoesGovernTimex) {
 							// If event governs a timex that comes before it, label it vague - 8/13
 							//probably can be fixed with lexical features
 							//flatTlink_te = null;
@@ -179,7 +179,7 @@ public class AdjacentVerbTimex implements Sieve {
 						}
 						else {
 							flatTlink_te = timexBeforeEvent(eventToTimexDist, event, timex, sent, tree); // 8/11
-							if (debug == true) {
+							if (debug) {
 							System.out.printf("E GOV T: %s(%s) %s(%s)\n%s", event.getString(), event.getId(), timex.getText(), timex.getTid(), sent.sentence());
 							}
 						}
@@ -193,7 +193,7 @@ public class AdjacentVerbTimex implements Sieve {
 					// if timex governs verb, use these rules
 					else if (TIMEX_GOVERNS_EVENT && timexDoesGovernEvent) {
 						// TIMEX_GOVERNS_EVENT is never true in the data!
-						depTlink_te = timexGovernsEvent(eventToTimexDist, event, timex, sent, tree, depRel);
+						depTlink_te = timexGovernsEvent(event, timex, sent, depRel);
 					}
 					
 					
@@ -222,7 +222,7 @@ public class AdjacentVerbTimex implements Sieve {
 				}
 			}
 		
-		if (debug == true) {
+		if (debug) {
 			System.out.println("TLINKS: " + proposed);
 			}
 		return proposed;
@@ -230,20 +230,18 @@ public class AdjacentVerbTimex implements Sieve {
 	
 /**
  * 
- * @param eventToTimexDist
  * @param event
  * @param timex
  * @param sent
- * @param tree
  * @param depRel
  * @criteria is_included no matter what!
  * @return a non-null tlink just in case the implemented criteria are satisfied
  */
- private TLink timexGovernsEvent(int eventToTimexDist, TextEvent event,
-		Timex timex, SieveSentence sent, Tree tree, GrammaticalRelation depRel) {
-	 TLink tlink = null;
+ private TLink timexGovernsEvent(TextEvent event,
+                                 Timex timex, SieveSentence sent, GrammaticalRelation depRel) {
+	 TLink tlink;
 	 tlink = new EventTimeLink(event.getEiid() , timex.getTid(), TLink.Type.IS_INCLUDED);
-	 if (debug == true) {
+	 if (debug) {
 		System.out.printf("Timex-Governs-Event: %s(%s) <%s> %s(%s)\n%s\n", 
 											 event.getString(), event.getId(), depRel.getShortName(),
 											 timex.getText(), timex.getTokenOffset(), sent.sentence());
@@ -264,7 +262,7 @@ public class AdjacentVerbTimex implements Sieve {
  */
 private TLink eventGovernsTimex(int eventToTimexDist, TextEvent event,
 			Timex timex, SieveSentence sent, Tree tree, GrammaticalRelation depRel) {
-	TLink tlink = null;
+	TLink tlink;
 	if (timex.getText().toLowerCase().equals("now")) {
  		if (event.getAspect() == TextEvent.Aspect.PROGRESSIVE)
  			tlink = new EventTimeLink(event.getEiid() , timex.getTid(), TLink.Type.INCLUDES);
@@ -274,7 +272,7 @@ private TLink eventGovernsTimex(int eventToTimexDist, TextEvent event,
 	else
 		tlink = new EventTimeLink(event.getEiid() , timex.getTid(), TLink.Type.IS_INCLUDED);
 	//tlink = eventBeforeTimex(eventToTimexDist,event,timex,sent,tree);
-	if (debug == true) {
+	if (debug) {
 		System.out.printf("Event-Governs-Timex: %s(%s) <%s> %s(%s)\n%s\n", 
 											 event.getString(), event.getId(), depRel.getShortName(),
 											 timex.getText(), timex.getTokenOffset(), sent.sentence());
@@ -295,7 +293,7 @@ private TLink eventGovernsTimex(int eventToTimexDist, TextEvent event,
  * @return a non-null tlink just in case the implemented criteria are satisfied
  */
 private TLink timexBeforeEvent(int eventToTimexDist, TextEvent event, Timex timex, SieveSentence sent, Tree tree) {
-	 	TLink tlink = null;
+	 	TLink tlink;
 		// if the timex is "now", return a vague tlink unless the event is in the progressive tense,
 	 	// in which case we return includes.
 	 	if (timex.getText().toLowerCase().equals("now")) {
@@ -305,7 +303,7 @@ private TLink timexBeforeEvent(int eventToTimexDist, TextEvent event, Timex time
 	 			tlink = new EventTimeLink(event.getEiid() , timex.getTid(), TLink.Type.VAGUE);
 	 		
 		}
-	 	// if the words are directly adjecent then is_included
+	 	// if the words are directly adjacent then is_included
 	 	else if (eventToTimexDist == -1) {
 			tlink = new EventTimeLink(event.getEiid() , timex.getTid(), TLink.Type.IS_INCLUDED);
 		}
@@ -320,7 +318,7 @@ private TLink timexBeforeEvent(int eventToTimexDist, TextEvent event, Timex time
 				//return eventBeforeTimex(eventToTimexDist,event,timex,sent,tree);
 				tlink = new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.IS_INCLUDED);
 		}
-		if (debug == true) {
+		if (debug) {
 			System.out.printf("TimexVerb: %s\n%s | %s", sent.sentence(), event.getString(), timex.getText());
 		}
 		return tlink;
@@ -329,7 +327,7 @@ private TLink timexBeforeEvent(int eventToTimexDist, TextEvent event, Timex time
 
 private TLink eventBeforeTimex(int eventToTimexDist, TextEvent event, Timex timex, SieveSentence sent, Tree tree) {
 // If there are no intervening words, label is_included
-	 TLink tlink = null;
+	 TLink tlink;
 	 
 	 		if (eventToTimexDist == 1) {
 			return new EventTimeLink(event.getEiid() , timex.getTid(), TLink.Type.IS_INCLUDED);
@@ -380,8 +378,7 @@ private TypedDependency getDepSentIndexPair(List<TypedDependency> deps, int sent
 		String val = timex.getValue();
 		// Return false if timex value is not a date or is a quarter
 		Matcher m = valQuarter.matcher(val);
-		if (!m.matches()) return true;
-		else return false;
+        return !m.matches();
 	}
 	/**
 	 * 
@@ -393,17 +390,15 @@ private TypedDependency getDepSentIndexPair(List<TypedDependency> deps, int sent
 	 */
 	private boolean validateEvent(TextEvent event, Tree tree, SieveSentence sent) {
 		String eventPos = posTagFromTree(tree, sent, event.getIndex());
-		if (!eventPos.startsWith("VB")) return false;
-		else return true;
+        return eventPos.startsWith("VB");
 	}
 	
 	// Given a sentence parse tree and an (sentence) index, return
 	// the pos of the corresponding word.
 	private String posTagFromTree(Tree tree, SieveSentence sent, int index) {
 		// tree might be null; we keep it null until we need a pos for the first time for a given sentence
-		if (tree == null) tree = sent.getParseTree(); 
-		String pos = TreeOperator.indexToPOSTag(tree, index);
-		return pos;
+		if (tree == null) tree = sent.getParseTree();
+        return TreeOperator.indexToPOSTag(tree, index);
 	}
 	
 	private TLink applyPrepVerbTimexRules(TextEvent event, Timex timex, String prepText) {
@@ -443,6 +438,9 @@ private TypedDependency getDepSentIndexPair(List<TypedDependency> deps, int sent
 		else if (prepText.equals("after")) {
 			return new EventTimeLink(event.getEiid() , timex.getTid(), TLink.Type.AFTER) ;
 		}
+        else if (prepText.equals("before")) {
+            return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.BEFORE);
+        }
 		// If we encounter a different IN (prep/sub conj)
 		else {
 			return new EventTimeLink(event.getEiid() , timex.getTid(), TLink.Type.IS_INCLUDED) ;
@@ -455,8 +453,7 @@ private TypedDependency getDepSentIndexPair(List<TypedDependency> deps, int sent
 	// need to subtract 1 from index when retrieving our core label.
 	private String getTextAtIndex(int index, SieveSentence sent) {
 		CoreLabel cl = sent.tokens().get(index - 1);
-		String text = cl.originalText();
-		return text;
+        return cl.originalText();
 	}
 	
 //	public void checkTLink(TLink tlink, List<TLink> proposed) throws IllegalStateException{
