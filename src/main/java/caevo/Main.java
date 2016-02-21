@@ -557,7 +557,7 @@ public class Main {
 	/**
 	 * DESTRUCTIVE FUNCTION (proposedLinks will be modified)
 	 * Removes any links from the proposed list that already have links between the same pairs in currentLinks.
-	 * @param currentLinks The list of current "good" links.
+	 * @param currentLinksHash The list of current "good" links.
 	 * @param proposedLinks The list of proposed new links.
 	 * @return The number of links removed.
 	 */
@@ -713,14 +713,18 @@ public class Main {
 	}
 	public void markupAll(SieveDocuments docs) {
 		markupEvents(docs);
-		markupTimexes(docs);
     // Try to determine DCT based on relevant property settings
 		// TODO: use reflection method parallel to how sieves are chosen to choose the right DCTHeuristic method
-		if (dctHeuristic == "setFirstDateAsDCT") {
+		if (dctHeuristic.equals("setFirstDateAsDCT")) {
 			for (SieveDocument doc : docs.getDocuments()) {
-				DCTHeursitics.setFirstDateAsDCT(doc);;  // only if there isn't already a DCT specified!
+				DCTHeursitics.setFirstDateAsDCT(doc);  // only if there isn't already a DCT specified!
+			}
+		} else if (dctHeuristic.equals("setTodaysDateAsDCT")) {
+			for (SieveDocument doc : docs.getDocuments()) {
+				DCTHeursitics.setTodaysDateAsDCT((doc));
 			}
 		}
+		markupTimexes(docs);
 		runSieves(docs);
 	}
 	

@@ -28,24 +28,32 @@ public class MainTest {
 
     @Test
     public void testMain() throws Exception {
-        // set the needed environment variable
-        setEnvironmentVariable("/d/Dropbox/workspace/caevo/src/test/resources/jwnl_file_properties.xml");
         // load custom properties
         CaevoProperties.load("./src/test/resources/test.properties");
+        // set the needed environment variable
+        setEnvironmentVariable(CaevoProperties.getString("jwnl"));
 
         File inputDir = new File(CaevoProperties.getString("inputDirPath"));
-        if (!inputDir.exists()) fail();
-        File[] instances = inputDir.listFiles(new FileFilter() {
-            @Override
-            public boolean accept(File pathname) {
-                try {
-                    return pathname.getName().endsWith(CaevoProperties.getString("testSuffix"));
-                } catch (IOException ioe) {
-                    throw new RuntimeException(ioe);
+        File[] instances, expected;
+        if (!inputDir.exists()) {
+            File inputFile = new File(CaevoProperties.getString("inputFilePath"));
+            if (!inputFile.exists()) fail();
+            inputDir = inputFile.getParentFile();
+            instances = new File[]{ inputFile };
+        }
+        else {
+            instances = inputDir.listFiles(new FileFilter() {
+                @Override
+                public boolean accept(File pathname) {
+                    try {
+                        return pathname.getName().endsWith(CaevoProperties.getString("testSuffix"));
+                    } catch (IOException ioe) {
+                        throw new RuntimeException(ioe);
+                    }
                 }
-            }
-        });
-        File[] expected = inputDir.listFiles(new FileFilter() {
+            });
+        }
+        expected = inputDir.listFiles(new FileFilter() {
             @Override
             public boolean accept(File pathname) {
                 try {
@@ -57,20 +65,30 @@ public class MainTest {
         });
         Map<File, File> tests = mapTestToExpected(instances, expected);
 
-        for (File test : tests.keySet()) {
+
+        List<File> failed = new ArrayList<File>();
+        for (File test : instances) {
             String[] args = {test.getAbsolutePath(), "raw"};
             Main.main(args);
-            checkResult(test.getAbsolutePath(), tests.get(test));
-
+            if (tests.keySet().contains(test)) {
+                // run all tests, assert only for those with 'expected' files.
+                boolean passed = checkResult(test.getAbsolutePath(), tests.get(test));
+                if (!passed) failed.add(test);
+            }
+        }
+        if (!failed.isEmpty()) {
+            System.out.println("Failed:" +failed);
+            fail();
         }
     }
 
-    private void checkResult(String testName, File expected) throws Exception {
+    private boolean checkResult(String testName, File expected) throws Exception {
         File resultFile = new File(testName+CaevoProperties.getString("resultSuffix"));
-        if (!resultFile.exists()) fail();
+        if (!resultFile.exists()) return false;
         CaevoResult result = new CaevoResult(resultFile, false);
         CaevoResult expectedResult = new CaevoResult(expected, true);
-        if (!result.equals(expectedResult)) fail();
+        if (!result.equals(expectedResult)) return false;
+        return true;
     }
 
     private Map<File, File> mapTestToExpected(File[] instances, File[] expected) throws IOException {
@@ -123,11 +141,9 @@ public class MainTest {
             if (o == null || getClass() != o.getClass()) return false;
 
             CaevoResult that = (CaevoResult) o;
-
             if (!events.equals(that.events)) return false;
             if (!timexes.equals(that.timexes)) return false;
             return tlinks.equals(that.tlinks);
-
         }
 
         @Override
@@ -228,12 +244,10 @@ public class MainTest {
                 if (o == null || getClass() != o.getClass()) return false;
 
                 TestTLink tLink = (TestTLink) o;
-
                 if (!event1.equals(tLink.event1)) return false;
                 if (!event2.equals(tLink.event2)) return false;
                 if (relation != tLink.relation) return false;
                 return origin.equals(tLink.origin);
-
             }
 
             @Override
@@ -281,5 +295,4 @@ public class MainTest {
         };
         types.addAll(Arrays.asList(typeNames));
     }
-
 }

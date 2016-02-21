@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
-import edu.stanford.nlp.ling.CoreAnnotations.CopyAnnotation;
 import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.ling.IndexedWord;
 import edu.stanford.nlp.ling.Label;
 import edu.stanford.nlp.ling.Word;
 import edu.stanford.nlp.trees.GrammaticalRelation;
@@ -543,32 +543,25 @@ public class TreeOperator {
       int hyphen = strGov.length()-2;
       while( hyphen > -1 && strGov.charAt(hyphen) != '-' ) hyphen--;
       if( hyphen < 0 ) return null;
-      
-      TreeGraphNode gov = new TreeGraphNode(new Word(strGov.substring(0,hyphen)));
+
+      IndexedWord gov = new IndexedWord();
+      gov.setWord(strGov.substring(0,hyphen));
+
       int end = strGov.length();
       // "happy-12'"  -- can have many apostrophes, each indicates the nth copy of this relation
-      int copies = 0;
-      while( strGov.charAt(end-1) == '\'' ) {
-        copies++;
-        end--;
-      }
-      if( copies > 0 ) gov.label().set(CopyAnnotation.class, copies);
-      gov.label().setIndex(Integer.parseInt(strGov.substring(hyphen+1,end)));
+      gov.setIndex(Integer.parseInt(strGov.substring(hyphen+1,end)));
 
       // "sad-3"
       hyphen = strDep.length()-2;
       while( hyphen > -1 && strDep.charAt(hyphen) != '-' ) hyphen--;
       if( hyphen < 0 ) return null;
-      TreeGraphNode dep = new TreeGraphNode(new Word(strDep.substring(0,hyphen)));
+
+     IndexedWord dep = new IndexedWord();
+      dep.setWord(strDep.substring(0,hyphen));
+
       end = strDep.length();
       // "sad-3'"  -- can have many apostrophes, each indicates the nth copy of this relation
-      copies = 0;
-      while( strDep.charAt(end-1) == '\'' ) {
-        copies++;
-        end--;
-      }
-      if( copies > 0 ) dep.label().set(CopyAnnotation.class, copies);
-      dep.label().setIndex(Integer.parseInt(strDep.substring(hyphen+1,end)));
+      dep./*label().*/setIndex(Integer.parseInt(strDep.substring(hyphen+1,end)));
 
       return new TypedDependency(rel,gov,dep);
     } catch( Exception ex ) {

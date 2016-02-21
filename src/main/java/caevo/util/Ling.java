@@ -213,7 +213,7 @@ public class Ling {
     Map<Integer, String> particles = new HashMap<Integer, String>();
     for( TypedDependency dep : deps ) {
       if( dep.reln().toString().equals("prt") ) {
-        particles.put(dep.gov().index(), dep.dep().label().value());
+        particles.put(dep.gov().index(), dep.dep().value());
       }
     }
     return particles;

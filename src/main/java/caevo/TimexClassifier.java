@@ -9,7 +9,7 @@ import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.AnnotationPipeline;
 import edu.stanford.nlp.pipeline.POSTaggerAnnotator;
-import edu.stanford.nlp.pipeline.PTBTokenizerAnnotator;
+import edu.stanford.nlp.pipeline.TokenizerAnnotator;
 import edu.stanford.nlp.pipeline.WordsToSentencesAnnotator;
 import edu.stanford.nlp.time.Options.RelativeHeuristicLevel;
 import edu.stanford.nlp.time.SUTimeMain;
@@ -257,16 +257,9 @@ public class TimexClassifier {
     Properties props = new Properties();
     props.setProperty("sutime.includeRange", "true");
     props.setProperty("sutime.markTimeRanges", "true");
-    props.setProperty("sutime.includeNested", "false");
-    props.setProperty("sutime.restrictToTimex3", "true");
-    props.setProperty("sutime.teRelHeurLevel", RelativeHeuristicLevel.BASIC.name());
-//    props.setProperty("sutime.rules", "edu/stanford/nlp/time/rules/defs.sutime.txt,edu/stanford/nlp/time/rules/english.sutime.txt,edu/stanford/nlp/time/rules/english.holidays.sutime.txt");
-    props.setProperty("sutime.rules", "edu/stanford/nlp/models/sutime/defs.sutime.txt,edu/stanford/nlp/models/sutime/english.sutime.txt,edu/stanford/nlp/models/sutime/english.holidays.sutime.txt");
-    System.setProperty("pos.model", posTaggerData);
-    
     AnnotationPipeline pipeline = new AnnotationPipeline();
     if (tokenize) {
-      pipeline.addAnnotator(new PTBTokenizerAnnotator(false));
+      pipeline.addAnnotator(new TokenizerAnnotator(false));
       pipeline.addAnnotator(new WordsToSentencesAnnotator(false));
     }
     pipeline.addAnnotator(new POSTaggerAnnotator(false));

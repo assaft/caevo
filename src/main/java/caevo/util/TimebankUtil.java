@@ -10,6 +10,7 @@ import java.util.Map;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import edu.stanford.nlp.ling.IndexedWord;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node; // yes?
 import org.w3c.dom.NodeList; // yes?
@@ -254,9 +255,9 @@ public class TimebankUtil {
   public static TextEvent.Tense pseudoTense(SieveSentence sent, List<TypedDependency> tds, TextEvent event) {
   	int eventIndex = event.getIndex();
   	for (TypedDependency td : tds) {
-  		TreeGraphNode dep = td.dep();
+  		IndexedWord dep = td.dep();
   		if (eventIndex == td.gov().index() && 
-  				isModalWord(dep.toString("value").toLowerCase()) &&
+  				isModalWord(dep.value().toLowerCase()) &&
   				td.reln().toString().equals("aux")) {
   			return TextEvent.Tense.FUTURE;
   		}
