@@ -1,23 +1,6 @@
 package caevo;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import caevo.util.Directory;
-import caevo.util.HandleParameters;
-import caevo.util.Ling;
-import caevo.util.TreeOperator;
-import caevo.util.Util;
-import caevo.util.WordNet;
+import caevo.util.*;
 import edu.stanford.nlp.classify.Classifier;
 import edu.stanford.nlp.classify.LinearClassifierFactory;
 import edu.stanford.nlp.classify.RVFDataset;
@@ -28,13 +11,13 @@ import edu.stanford.nlp.ling.RVFDatum;
 import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
 import edu.stanford.nlp.stats.ClassicCounter;
 import edu.stanford.nlp.stats.Counter;
-import edu.stanford.nlp.trees.GrammaticalStructureFactory;
-import edu.stanford.nlp.trees.LabeledScoredTreeFactory;
-import edu.stanford.nlp.trees.PennTreebankLanguagePack;
-import edu.stanford.nlp.trees.Tree;
-import edu.stanford.nlp.trees.TreeFactory;
-import edu.stanford.nlp.trees.TreebankLanguagePack;
-import edu.stanford.nlp.trees.TypedDependency;
+import edu.stanford.nlp.trees.*;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.util.*;
 
 /**
  * Featurizes single tokens for the task of determining EVENT or NOT EVENT.
@@ -481,7 +464,6 @@ public class TextEventClassifier {
    *     <sentence-id> <token-index> <token-string> <event-class> <event-tense>
    * @param outpath File path to create.
    * @param file Name of the file in the InfoFile that you want.
-   * @param info The InfoFile itself.
    */
   public void createEventsOnlyFile(String outpath, String file, SieveDocuments docs) {
     try {

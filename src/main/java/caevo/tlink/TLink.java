@@ -1,9 +1,8 @@
 package caevo.tlink;
 
+import caevo.SieveDocument;
 import org.jdom.Element;
 import org.jdom.Namespace;
-
-import caevo.SieveDocument;
 
 
 public class TLink implements Comparable<TLink> {
@@ -228,8 +227,8 @@ public class TLink implements Comparable<TLink> {
   }
   
   public int compareTo(TLink obj) {
-    if( obj instanceof TLink ) {
-      TLink other = (TLink)obj;
+    if(obj != null) {
+      TLink other = obj;
       if( this.relationConfidence < other.relationConfidence )
         return 1;
       if( this.relationConfidence > other.relationConfidence )
@@ -320,4 +319,33 @@ public class TLink implements Comparable<TLink> {
 
 		return linkclone;
 	}
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        TLink tLink = (TLink) o;
+
+        if (closed != tLink.closed) return false;
+        if (!id1.equals(tLink.id1)) return false;
+        if (!id2.equals(tLink.id2)) return false;
+        if (originalRelation != null ? !originalRelation.equals(tLink.originalRelation) : tLink.originalRelation != null)
+            return false;
+        return document != null ? document.equals(tLink.document) : tLink.document == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result;
+        long temp;
+        result = id1.hashCode();
+        result = 31 * result + id2.hashCode();
+        result = 31 * result + (originalRelation != null ? originalRelation.hashCode() : 0);
+        result = 31 * result + (closed ? 1 : 0);
+        temp = Double.doubleToLongBits(relationConfidence);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        result = 31 * result + document.hashCode();
+        return result;
+    }
 }

@@ -1,21 +1,22 @@
 package caevo;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-
+import com.sun.org.apache.xerces.internal.dom.DocumentImpl;
+import com.sun.org.apache.xerces.internal.dom.ElementImpl;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
-import edu.stanford.nlp.pipeline.Annotation;
-import edu.stanford.nlp.pipeline.AnnotationPipeline;
-import edu.stanford.nlp.pipeline.POSTaggerAnnotator;
-import edu.stanford.nlp.pipeline.TokenizerAnnotator;
-import edu.stanford.nlp.pipeline.WordsToSentencesAnnotator;
-import edu.stanford.nlp.time.Options.RelativeHeuristicLevel;
+import edu.stanford.nlp.pipeline.*;
 import edu.stanford.nlp.time.SUTimeMain;
 import edu.stanford.nlp.time.TimeAnnotations;
 import edu.stanford.nlp.time.TimeAnnotator;
+import edu.stanford.nlp.time.TimeExpression;
 import edu.stanford.nlp.util.CoreMap;
+import org.joda.time.Duration;
+import org.joda.time.Instant;
+import org.w3c.dom.Element;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 
 /**
@@ -146,7 +147,7 @@ public class TimexClassifier {
           // SUTime is overly specific on years. Strip off the month and day.
           if( text.equals("last year") )
             timex.setValue(timex.getValue().substring(0,4));
-          if( text.contains("years ago") )
+          if (text.endsWith("years ago"))
             timex.setValue(timex.getValue().substring(0,4));
 
           // 0.4 F1 improvement. This fixed ~8 errors, and didn't add any errors of its own.
@@ -229,9 +230,28 @@ public class TimexClassifier {
     
     // Create my Timex objects from Stanford's Timex objects.
     List<Timex> newtimexes = new ArrayList<Timex>();
-    for( CoreMap label : annotation.get(TimeAnnotations.TimexAnnotations.class) ) {
+    List<CoreMap> labels = annotation.get(TimeAnnotations.TimexAnnotations.class);
+
+    // workaround for SUTime bug
+    int prepositionIndex = findBeforeOrAfter(words);
+    if (prepositionIndex > -1) {
+      CoreMap pre = timexBefore(labels, prepositionIndex);
+      CoreMap post = timexAfter(labels, prepositionIndex);
+      if (pre != null && post != null) {
+        // remove both timexes
+        labels.remove(pre);
+        labels.remove(post);
+        CoreMap combinedTimex = new Annotation();
+        combinedTimex.set(CoreAnnotations.TokenBeginAnnotation.class, pre.get(CoreAnnotations.TokenBeginAnnotation.class));
+        combinedTimex.set(CoreAnnotations.TokenEndAnnotation.class, post.get(CoreAnnotations.TokenEndAnnotation.class));
+        combinedTimex.set(TimeAnnotations.TimexAnnotation.class, produceTimex(pre, post, words, prepositionIndex));
+        labels.add(combinedTimex);
+      }
+    }
+
+    for (CoreMap label : labels) {
       edu.stanford.nlp.time.Timex stanfordTimex = label.get(TimeAnnotations.TimexAnnotation.class);
-      org.w3c.dom.Element stanfordElement = stanfordTimex.toXmlElement();
+      Element stanfordElement = stanfordTimex.toXmlElement();
       Timex newtimex = new Timex();
       newtimex.setType(Timex.Type.valueOf(stanfordElement.getAttribute("type")));
       newtimex.setValue(stanfordElement.getAttribute("value"));
@@ -247,7 +267,60 @@ public class TimexClassifier {
     }
     return newtimexes;
   }
-  
+
+  private edu.stanford.nlp.time.Timex produceTimex(CoreMap pre, CoreMap post, List<CoreLabel> words, int prepositionIndex) {
+    String prepStr = words.get(prepositionIndex - 1).get(CoreAnnotations.TextAnnotation.class);
+    String combinedText = pre.get(CoreAnnotations.TextAnnotation.class) + " " +
+            prepStr + " " +
+            post.get(CoreAnnotations.TextAnnotation.class);
+    Element element = new ElementImpl(new DocumentImpl(false), "TIMEX");
+    boolean isBefore = "before".equalsIgnoreCase(prepStr);
+    String elementValue = determineElementValue(pre, post, isBefore);
+    element.setAttribute("value", elementValue);
+    element.setAttribute("type", Timex.Type.DATE.toString());
+    element.setTextContent(combinedText);
+    return new edu.stanford.nlp.time.Timex(element);
+  }
+
+  private String determineElementValue(CoreMap pre, CoreMap post, boolean isBefore) {
+    // post is assumed to be a time expression of a date/time
+    Instant postInstant = post.get(TimeExpression.Annotation.class).getTemporal().getTime().getJodaTimeInstant();
+    // pre is assumed to be a time expression of a duration
+    Duration preDuration = pre.get(TimeExpression.Annotation.class).getTemporal().getDuration().getJodaTimeDuration();
+    Instant targetInstant = isBefore ? postInstant.minus(preDuration) : postInstant.plus(preDuration);
+    return targetInstant.toString();
+  }
+
+  private CoreMap timexAfter(List<CoreMap> labels, int prepositionIndex) {
+    for (CoreMap label : labels) {
+      int begin = label.get(CoreAnnotations.TokenBeginAnnotation.class);
+      if (begin == prepositionIndex) {
+        return label;
+      }
+    }
+    return null;
+  }
+
+  private CoreMap timexBefore(List<CoreMap> labels, int prepositionIndex) {
+    for (CoreMap label : labels) {
+      int end = label.get(CoreAnnotations.TokenEndAnnotation.class);
+      if (end == prepositionIndex - 1) {
+        return label;
+      }
+    }
+    return null;
+  }
+
+  private int findBeforeOrAfter(List<CoreLabel> words) {
+    for (CoreLabel word : words) {
+      String token = word.get(CoreAnnotations.TextAnnotation.class);
+      if ("before".equals(token) || "after".equals(token)) {
+        return word.get(CoreAnnotations.IndexAnnotation.class);
+      }
+    }
+    return -1;
+  }
+
   /**
    * Adapted this from javanlp's SUTimeMain.java.
    * We could better integrate this with the parsing of the sentences, rather than starting from scratch again.
@@ -267,17 +340,9 @@ public class TimexClassifier {
 
     return pipeline;
   }
-  
-  
-  /**
-   * @param args
-   */
-  public static void main(String[] args) {
-    if( args.length < 1 ) 
-      System.out.println("Tempeval3Parser [-output <path>] [-grammar <parser-grammar>] [-timex] -input <tempeval3-TBAQ-dir>");
-    else {
-//      TimexClassifier tp3 = new TimexClassifier();
-    }
+
+  public void setDebug(boolean debug) {
+    this.debug = debug;
   }
 
 }

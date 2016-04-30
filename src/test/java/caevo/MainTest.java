@@ -1,6 +1,5 @@
 package caevo;
 
-import caevo.sieves.*;
 import caevo.tlink.TLink;
 import caevo.util.CaevoProperties;
 import org.junit.Test;
@@ -11,7 +10,10 @@ import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.xpath.*;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathFactory;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.util.*;
@@ -33,11 +35,11 @@ public class MainTest {
         // set the needed environment variable
         setEnvironmentVariable(CaevoProperties.getString("jwnl"));
 
-        File inputDir = new File(CaevoProperties.getString("inputDirPath"));
+        File inputDir = new File(CaevoProperties.getString("inputPath", ""));
         File[] instances, expected;
-        if (!inputDir.exists()) {
-            File inputFile = new File(CaevoProperties.getString("inputFilePath"));
-            if (!inputFile.exists()) fail();
+        if (!inputDir.exists()) fail();
+        if (!inputDir.isDirectory()) {
+            File inputFile = inputDir;
             inputDir = inputFile.getParentFile();
             instances = new File[]{ inputFile };
         }
@@ -66,14 +68,14 @@ public class MainTest {
         Map<File, File> tests = mapTestToExpected(instances, expected);
 
 
-        List<File> failed = new ArrayList<File>();
+        List<String> failed = new ArrayList<String>();
         for (File test : instances) {
             String[] args = {test.getAbsolutePath(), "raw"};
             Main.main(args);
             if (tests.keySet().contains(test)) {
                 // run all tests, assert only for those with 'expected' files.
                 boolean passed = checkResult(test.getAbsolutePath(), tests.get(test));
-                if (!passed) failed.add(test);
+                if (!passed) failed.add(test.getName());
             }
         }
         if (!failed.isEmpty()) {
@@ -87,8 +89,7 @@ public class MainTest {
         if (!resultFile.exists()) return false;
         CaevoResult result = new CaevoResult(resultFile, false);
         CaevoResult expectedResult = new CaevoResult(expected, true);
-        if (!result.equals(expectedResult)) return false;
-        return true;
+        return result.equals(expectedResult);
     }
 
     private Map<File, File> mapTestToExpected(File[] instances, File[] expected) throws IOException {
@@ -122,7 +123,6 @@ public class MainTest {
                 field.setAccessible(true);
                 Object obj = field.get(env);
                 Map<String, String> map = (Map<String, String>) obj;
-                map.clear();
                 map.put("JWNL", s);
                 break;
             }
@@ -133,7 +133,7 @@ public class MainTest {
 
         Map<String, String> events = new HashMap<String, String>();
         Map<String, String> timexes = new HashMap<String, String>();
-        List<TestTLink> tlinks = new ArrayList<TestTLink>();
+        Set<TestTLink> tlinks = new HashSet<TestTLink>();
 
         @Override
         public boolean equals(Object o) {
@@ -175,7 +175,7 @@ public class MainTest {
                         timexes.put(st[0], st[1]);
                         break;
                     case 'l':
-                        tlinks.add(new TestTLink(st[1], st[2], st[3], st[4]));
+                        tlinks.add(new TestTLink(st[1], st[2], st[3]));
                         break;
                     default:
                         throw new RuntimeException("Unexpected line format in expected result file "+resultFile.getName());
@@ -208,6 +208,7 @@ public class MainTest {
                 Node node = nodeList.item(i);
                 NamedNodeMap attributes = node.getAttributes();
                 String timexId = attributes.getNamedItem("tid").getTextContent();
+                if (timexId.equals("t0")) continue;
                 String timexValue = attributes.getNamedItem("value").getTextContent();
                 timexes.put(timexId, timexValue);
             }
@@ -218,25 +219,22 @@ public class MainTest {
                 NamedNodeMap attributes = node.getAttributes();
                 String tlinkEvent1 = attributes.getNamedItem("event1").getTextContent();
                 String tlinkEvent2 = attributes.getNamedItem("event2").getTextContent();
+                if (tlinkEvent1.equals("t0") || tlinkEvent2.equals("t0")) continue;
                 String tlinkRelation = attributes.getNamedItem("relation").getTextContent();
-                String tlinkOrigin = attributes.getNamedItem("origin").getTextContent();
-                tlinks.add(new TestTLink(tlinkEvent1, tlinkEvent2, tlinkRelation, tlinkOrigin));
+                tlinks.add(new TestTLink(tlinkEvent1, tlinkEvent2, tlinkRelation));
             }
         }
 
         class TestTLink {
-            public TestTLink(String event1, String event2, String relation, String origin) {
+            public TestTLink(String event1, String event2, String relation) {
                 this.event1 = event1;
                 this.event2 = event2;
                 this.relation = TLink.Type.valueOf(relation);
-                if (!types.contains(origin)) throw new RuntimeException("Unknown Sieve: "+origin);
-                this.origin = origin;
             }
 
             String event1;
             String event2;
             TLink.Type relation;
-            String origin;
 
             @Override
             public boolean equals(Object o) {
@@ -247,7 +245,7 @@ public class MainTest {
                 if (!event1.equals(tLink.event1)) return false;
                 if (!event2.equals(tLink.event2)) return false;
                 if (relation != tLink.relation) return false;
-                return origin.equals(tLink.origin);
+                return true;
             }
 
             @Override
@@ -255,44 +253,9 @@ public class MainTest {
                 int result = event1.hashCode();
                 result = 31 * result + event2.hashCode();
                 result = 31 * result + relation.hashCode();
-                result = 31 * result + origin.hashCode();
                 return result;
             }
         }
     }
-    static Set<String> types = new HashSet<String>();
-    static {
-        String[] typeNames = new String[] {
-                AdjacentVerbTimex.class.getSimpleName(),
-                QuarterSieveReporting.class.getSimpleName(),
-                FrequencyVagueSieve.class.getSimpleName(),
-                Dependencies182.class.getSimpleName(),
-                TimeTimeSieve.class.getSimpleName(),
-                InternalEvents.class.getSimpleName(),
-                DependencyAnalyze.class.getSimpleName(),
-                WordFeatures5.class.getSimpleName(),
-                WordNet209.class.getSimpleName(),
-                MLVagueSieve.class.getSimpleName(),
-                MLEventTimeDiffSent.class.getSimpleName(),
-                MLEventEventSameSent.class.getSimpleName(),
-                EventCorefSieve.class.getSimpleName(),
-                CleartkTimemlSieve_ImplBase.class.getSimpleName(),
-                ReichenbachDG13_update.class.getSimpleName(),
-                EventCreationTimeSieve.class.getSimpleName(),
-                AllVagueSieve.class.getSimpleName(),
-                XCompDepSieve.class.getSimpleName(),
-                MLEventTimeSameSent.class.getSimpleName(),
-                NominalEvents.class.getSimpleName(),
-                BaselineEventDCT.class.getSimpleName(),
-                WordFeatures64.class.getSimpleName(),
-                MLEventDCT.class.getSimpleName(),
-                MLEventEventDiffSent.class.getSimpleName(),
-                RepCreationDay.class.getSimpleName(),
-                EventEventVagueSieve.class.getSimpleName(),
-                StupidSieve.class.getSimpleName(),
-                RepEventGovEvent.class.getSimpleName(),
-                MLEventGovDep.class.getSimpleName()
-        };
-        types.addAll(Arrays.asList(typeNames));
-    }
+
 }

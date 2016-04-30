@@ -1,27 +1,9 @@
 package caevo;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-
 import caevo.sieves.Sieve;
 import caevo.tlink.TLink;
 import caevo.tlink.TimeTimeLink;
-import caevo.util.DCTHeursitics;
-import caevo.util.Directory;
-import caevo.util.Ling;
-import caevo.util.SieveStats;
-import caevo.util.CaevoProperties;
-import caevo.util.Util;
-import caevo.util.WordNet;
+import caevo.util.*;
 import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
 import edu.stanford.nlp.stats.ClassicCounter;
 import edu.stanford.nlp.stats.Counter;
@@ -29,6 +11,12 @@ import edu.stanford.nlp.trees.GrammaticalStructureFactory;
 import edu.stanford.nlp.trees.PennTreebankLanguagePack;
 import edu.stanford.nlp.trees.TreebankLanguagePack;
 import edu.stanford.nlp.util.StringUtils;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Controls all Sieve processing including TLink annotating, closure, and the core programming.
@@ -504,9 +492,12 @@ public class Main {
 	}
     
 	private void addProposedToCurrentList(String sieveName, List<TLink> proposed, List<TLink> current, Map<String,TLink> currentHash) {
-		for( TLink newlink : proposed ) {
+		Iterator<TLink> iter = proposed.iterator();
+		while (iter.hasNext()) {
+			TLink newlink = iter.next();
 			if( currentHash.containsKey(newlink.getId1()+newlink.getId2()) ) {
-				System.out.println("MAIN WARNING: overwriting " + currentHash.get(newlink.getId1()+newlink.getId2()) + " with " + newlink);
+				System.out.println("MAIN WARNING: overwriting " + currentHash.get(newlink.getId1() + newlink.getId2()) + " with " + newlink);
+				current.remove(newlink);
 			}
 			current.add(newlink);
 			currentHash.put(newlink.getId1()+newlink.getId2(), newlink);
@@ -571,8 +562,18 @@ public class Main {
 		for( TLink proposed : proposedLinks ) {
 			// Look for a current link that conflicts with this proposed link.
 			TLink current = currentLinksHash.get(proposed.getId1()+proposed.getId2());
-			if( current != null && current.coversSamePair(proposed) )
-				removals.add(proposed);
+			if (current != null && current.coversSamePair(proposed)) {
+				switch (current.getRelation()) {
+					case UNKNOWN:
+					case VAGUE:
+					case NONE:
+						// no harm in overwriting this weak tlink
+						break;
+					default:
+						removals.add(proposed);
+
+				}
+			}
 		}
 
 		for( TLink remove : removals )
@@ -719,9 +720,14 @@ public class Main {
 			for (SieveDocument doc : docs.getDocuments()) {
 				DCTHeursitics.setFirstDateAsDCT(doc);  // only if there isn't already a DCT specified!
 			}
-		} else if (dctHeuristic.equals("setTodaysDateAsDCT")) {
+		} else if (dctHeuristic.equals("setFixedDateAsDCT")) {
+			String date = "1969-07-21";
+			try {
+				date = CaevoProperties.getString("Main.dct", date);
+			} catch (IOException ignored) {
+			}
 			for (SieveDocument doc : docs.getDocuments()) {
-				DCTHeursitics.setTodaysDateAsDCT((doc));
+				DCTHeursitics.setFixedDateAsDCT(doc, date);
 			}
 		}
 		markupTimexes(docs);
@@ -745,6 +751,10 @@ public class Main {
 	public void markupTimexes(SieveDocuments info) {
 		if( timexClassifier == null ) {
 			timexClassifier = new TimexClassifier(info);
+			try {
+				timexClassifier.setDebug(CaevoProperties.getBoolean("Main.debug", false));
+			} catch (IOException ignore) {
+			}
 			timexClassifier.markupTimex3();
 		} else {
 			timexClassifier.markupTimex3(info);

@@ -1,0 +1,6 @@
+ei1,taught
+t1,1994
+t2,1999
+l1,ei1,t1,AFTER,AdjacentVerbTimex
+l2,ei1,t2,BEFORE_OR_OVERLAP,AdjacentVerbTimex
+l3,t1,t2,BEFORE,TimeTimeSieve

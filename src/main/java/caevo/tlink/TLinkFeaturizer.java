@@ -1,33 +1,24 @@
 package caevo.tlink;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
-import caevo.Main;
-import caevo.SieveDocument;
-import caevo.SieveDocuments;
-import caevo.SieveSentence;
-import caevo.TextEvent;
-import caevo.Timex;
+import caevo.*;
 import caevo.util.HandleParameters;
 import caevo.util.TimebankUtil;
 import caevo.util.TreeOperator;
 import caevo.util.WordNet;
-import net.didion.jwnl.data.POS;
-import net.didion.jwnl.data.Synset;
 import edu.stanford.nlp.stats.ClassicCounter;
 import edu.stanford.nlp.stats.Counter;
 import edu.stanford.nlp.trees.LabeledScoredTreeFactory;
 import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.trees.TreeFactory;
 import edu.stanford.nlp.trees.TypedDependency;
+import net.didion.jwnl.data.POS;
+import net.didion.jwnl.data.Synset;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 /**
  * This is the NEWEST (2012) best code to learn from TimeBank annotations.
@@ -330,9 +321,6 @@ public class TLinkFeaturizer {
    * Create a datum object for the given TLink link with all of its features.
    * Creates the features from the parse trees and event attributes.
    * @param link The TLink to featurize.
-   * @param trees All phrase trees from one document.
-   * @param events All of the events in the document (will find the two from the TLink).
-   * @param timexes All of the timexes in the document.
    * @return A new TLinkDatum representing the given TLink.
    */
   private TLinkDatum createTLinkDatum(SieveDocument doc, TLink link, boolean isdctlink) {
@@ -400,10 +388,7 @@ public class TLinkFeaturizer {
    * The "label" is optional and can be null if we don't know it for testing. For training, you'll want to
    * include the gold label here.
    * NOTE: **** the label should agree with the order of "event LABEL time" ***
-   * @param event1 The first event.
-   * @param event2 The second event. (doesn't have to be second in textual order)
    * @param label The gold label, or null if unknown.
-   * @param trees All parse trees for the entire document where these two events reside.
    * @return A single TLinkDatum object with relevant features.
    */
   public TLinkDatum createEventTimeDatum(SieveDocument doc, TextEvent event, Timex time, TLink.Type label) {
@@ -466,8 +451,6 @@ public class TLinkFeaturizer {
    * @param event1 The first event.
    * @param event2 The second event. (doesn't have to be second in textual order)
    * @param label The gold label, or null if unknown.
-   * @param events The events in the single sentence of these 2 events. If they are in diff sentences, just set to null.
-   * @param trees All parse trees for the entire document where these two events reside.
    * @return A single TLinkDatum object with relevant features.
    */
   public TLinkDatum createEventEventDatum(SieveDocument doc, TextEvent event1, TextEvent event2, TLink.Type label) {
@@ -1143,8 +1126,6 @@ public class TLinkFeaturizer {
   
   /**
    * Find the Timex with ID timeID in the given list of timex objects.
-   * @param eventID The ID of the timex we want.
-   * @param events All the timexes in a document.
    * @return A single Timex object with the desired ID.
    */
   public static Timex findTimex(String timeID, List<Timex> timexes) {
