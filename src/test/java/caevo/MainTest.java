@@ -143,7 +143,21 @@ public class MainTest {
             CaevoResult that = (CaevoResult) o;
             if (!events.equals(that.events)) return false;
             if (!timexes.equals(that.timexes)) return false;
-            return tlinks.equals(that.tlinks);
+            return compareTlinks(that.tlinks);
+        }
+
+        private boolean compareTlinks(Set<TestTLink> otherTlinksSet) {
+            List<TestTLink> otherTlinks = new ArrayList<TestTLink>(otherTlinksSet);
+            if (tlinks.equals(otherTlinks)) return true;
+            for (TestTLink testTLink : tlinks) {
+                if (otherTlinks.contains(testTLink)) continue;
+                else {
+                    TestTLink reverseTestTlink = new TestTLink(testTLink.event2, testTLink.event1, TLink.invertRelation(testTLink.relation));
+                    if (otherTlinks.contains(reverseTestTlink)) continue;
+                    else return false;
+                }
+            }
+            return true;
         }
 
         @Override
@@ -230,6 +244,12 @@ public class MainTest {
                 this.event1 = event1;
                 this.event2 = event2;
                 this.relation = TLink.Type.valueOf(relation);
+            }
+
+            TestTLink(String event1, String event2, TLink.Type relation) {
+                this.event1 = event1;
+                this.event2 = event2;
+                this.relation = relation;
             }
 
             String event1;
