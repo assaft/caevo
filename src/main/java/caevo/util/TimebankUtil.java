@@ -257,7 +257,7 @@ public class TimebankUtil {
   	for (TypedDependency td : tds) {
   		IndexedWord dep = td.dep();
   		if (eventIndex == td.gov().index() && 
-  				isModalWord(dep.value().toLowerCase()) &&
+  				isModalWord(dep.word().toLowerCase()) &&
   				td.reln().toString().equals("aux")) {
   			return TextEvent.Tense.FUTURE;
   		}
