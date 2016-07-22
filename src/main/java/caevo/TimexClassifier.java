@@ -245,6 +245,16 @@ public class TimexClassifier {
             }
         }
 
+        // filter out nested timexes
+        for (CoreMap label : labels) {
+            List<? extends CoreMap> children = label.get(TimeExpression.ChildrenAnnotation.class);
+            for (CoreMap child : children) {
+                if (labels.contains(child) && !rejects.contains(child)) {
+                    rejects.add(child);
+                }
+            }
+        }
+
         labels.removeAll(rejects);
 
 

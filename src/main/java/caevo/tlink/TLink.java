@@ -18,10 +18,10 @@ public class TLink implements Comparable<TLink> {
   public static final String CLOSED_ELEM = "closed";
   public static final String ORIGIN_ELEM = "origin";
   
-  public static enum Type { BEFORE, AFTER, IBEFORE, IAFTER, INCLUDES, IS_INCLUDED, BEGINS, BEGUN_BY, ENDS, ENDED_BY, SIMULTANEOUS, 
-    NONE, VAGUE, UNKNOWN, OVERLAP, BEFORE_OR_OVERLAP, OVERLAP_OR_AFTER };
+  public enum Type { BEFORE, AFTER, IBEFORE, IAFTER, INCLUDES, IS_INCLUDED, BEGINS, BEGUN_BY, ENDS, ENDED_BY, SIMULTANEOUS,
+    NONE, VAGUE, UNKNOWN, OVERLAP, BEFORE_OR_OVERLAP, OVERLAP_OR_AFTER, DURING }
 
-  // This has been changed. Previously, the mode determined how the tlink relations would be saved
+    // This has been changed. Previously, the mode determined how the tlink relations would be saved
   // in the .info file once read from the TimeBank source. This is no longer true. The .info file now
   // always has the TimeBank relations. We need to change any mode swaps to do this live, so that changeMode
   // flips all current TLink objects and is done. This change would occur in the InfoFile class.
@@ -68,7 +68,8 @@ public class TLink implements Comparable<TLink> {
   	if( relation == TLink.Type.BEFORE_OR_OVERLAP ) 	return TLink.Type.OVERLAP_OR_AFTER;
   	if( relation == TLink.Type.OVERLAP_OR_AFTER ) 	return TLink.Type.BEFORE_OR_OVERLAP;
   	if( relation == TLink.Type.OVERLAP || relation == TLink.Type.SIMULTANEOUS || 
-  			relation == TLink.Type.NONE || relation == TLink.Type.VAGUE || relation == TLink.Type.UNKNOWN ) 
+  			relation == TLink.Type.NONE || relation == TLink.Type.VAGUE ||
+            relation == TLink.Type.UNKNOWN || relation == Type.DURING )
   		return relation;
 
   	System.err.println("ERROR in TLink.invertRelation, unmatched relation " + relation);

@@ -1,6 +1,6 @@
 ei1,left
 t1,1969-07-21
 t2,1969-07-23
-l1,ei1,t1,OVERLAP_OR_AFTER,AdjacentVerbTimex
-l2,ei1,t2,BEFORE_OR_OVERLAP,AdjacentVerbTimex
-l3,t1,t2,BEFORE,TimeTimeSieve
+l1,ei1,t1,BEGUN_BY
+l2,ei1,t2,ENDED_BY
+l3,t1,t2,BEFORE

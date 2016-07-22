@@ -1,22 +1,13 @@
 package caevo;
 
-import caevo.tlink.TLink;
 import caevo.util.CaevoProperties;
 import org.junit.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathFactory;
 import java.io.*;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.Assert.fail;
 
@@ -67,29 +58,99 @@ public class MainTest {
         });
         Map<File, File> tests = mapTestToExpected(instances, expected);
 
-
-        List<String> failed = new ArrayList<String>();
+        double[] accumulatedStats = new double[9];
+        File output = new File(CaevoProperties.getString("outputPath"));
+        if (!output.exists()) output.createNewFile();
+        StringBuilder sb = new StringBuilder();
         for (File test : instances) {
             String[] args = {test.getAbsolutePath(), "raw"};
             Main.main(args);
             if (tests.keySet().contains(test)) {
-                // run all tests, assert only for those with 'expected' files.
-                boolean passed = checkResult(test.getAbsolutePath(), tests.get(test));
-                if (!passed) failed.add(test.getName());
+                // run all tests, accumulate statistics
+                double[] stats = checkResult(test.getAbsolutePath(), tests.get(test));
+                sb.append(printStats("Stats for " + test.getAbsolutePath(), stats));
+                for (int i = 0; i < stats.length; i++) {
+                    accumulatedStats[i] += stats[i];
+                }
             }
         }
-        if (!failed.isEmpty()) {
-            System.out.println("Failed:" +failed);
-            fail();
+        if (instances.length > 1) {
+            for (int i = 0; i < accumulatedStats.length; i++) {
+                accumulatedStats[i] /= instances.length;
+            }
+            sb.append(printStats("Batch statistics", accumulatedStats));
         }
+        System.out.println(sb.toString());
+        BufferedWriter writer = new BufferedWriter(new FileWriter(output));
+        writer.write(sb.toString());
+        writer.flush();
+        writer.close();
     }
 
-    private boolean checkResult(String testName, File expected) throws Exception {
+    private String printStats(String headline, double[] stats) {
+        StringBuilder sb = new StringBuilder(headline).append('\n');
+        sb.append('\t').append("Events recall:").append("\t\t").append(stats[0]).append('\n');
+        sb.append('\t').append("Events precision:").append('\t').append(stats[1]).append('\n');
+        sb.append('\t').append("Events F1:").append("\t\t\t").append(stats[2]).append('\n');
+        sb.append('\t').append("Timex recall:").append("\t\t").append(stats[3]).append('\n');
+        sb.append('\t').append("Timex precision:").append('\t').append(stats[4]).append('\n');
+        sb.append('\t').append("Timex F1:").append("\t\t\t").append(stats[5]).append('\n');
+        sb.append('\t').append("TLinks recall:").append("\t\t").append(stats[6]).append('\n');
+        sb.append('\t').append("TLinks precision:").append('\t').append(stats[7]).append('\n');
+        sb.append('\t').append("TLinks F1:").append("\t\t\t").append(stats[8]).append('\n');
+        sb.append("Overall score: ").append((stats[2] + stats[5] + stats[8]) / 3).append("\n\n");
+
+        return sb.toString();
+    }
+
+    private double[] checkResult(String testName, File expected) throws Exception {
         File resultFile = new File(testName+CaevoProperties.getString("resultSuffix"));
-        if (!resultFile.exists()) return false;
+        if (!resultFile.exists()) return new double[9];
         CaevoResult result = new CaevoResult(resultFile, false);
         CaevoResult expectedResult = new CaevoResult(expected, true);
-        return result.equals(expectedResult);
+        return collectStatistics(expectedResult, result);
+    }
+
+    private double[] collectStatistics(CaevoResult expected, CaevoResult actual) {
+        double[] stats = new double[9];
+
+        // events precision and recall
+        double counter = 0;
+        for (Map.Entry<String, String> actualEvent : actual.events.entrySet()) {
+            if (expected.events.entrySet().contains(actualEvent)) counter++;
+        }
+        //event recall
+        stats[0] = expected.events.isEmpty() ? 1 : counter / expected.events.size();
+        // event precision
+        stats[1] = actual.events.isEmpty() ? 1 : counter / actual.events.size();
+        // event F1
+        stats[2] = (stats[0] + stats[1] == 0) ? 0 : 2 * stats[1] * stats[0] / (stats[1] + stats[0]);
+
+        // timex precision and recall
+        counter = 0;
+        for (Map.Entry<String, String> actualTimex : actual.timexes.entrySet()) {
+            if (expected.timexes.entrySet().contains(actualTimex)) counter++;
+        }
+        //  timex recall
+        stats[3] = expected.timexes.isEmpty() ? 1 : counter / expected.timexes.size();
+        // timex precision
+        stats[4] = actual.timexes.isEmpty() ? 1 : counter / actual.timexes.size();
+        // timex F1
+        stats[5] = (stats[3] + stats[4] == 0) ? 0 : 2 * stats[3] * stats[4] / (stats[3] + stats[4]);
+
+        // tlinks precision and recall
+        counter = 0;
+        for (CaevoResult.TestTLink actualTLink : actual.tlinks) {
+            if (CaevoResult.containsTLink(expected.tlinks, actualTLink)) counter++;
+        }
+        // links recall
+        stats[6] = expected.tlinks.isEmpty() ? 1 : counter / expected.tlinks.size();
+        // links precision
+        stats[7] = actual.tlinks.isEmpty() ? 1 : counter / actual.tlinks.size();
+        // links F1
+        stats[8] = (stats[6] + stats[7] == 0) ? 0 : 2 * stats[6] * stats[7] / (stats[6] + stats[7]);
+
+        return stats;
     }
 
     private Map<File, File> mapTestToExpected(File[] instances, File[] expected) throws IOException {
@@ -125,155 +186,6 @@ public class MainTest {
                 Map<String, String> map = (Map<String, String>) obj;
                 map.put("JWNL", s);
                 break;
-            }
-        }
-    }
-
-    class CaevoResult {
-
-        Map<String, String> events = new HashMap<String, String>();
-        Map<String, String> timexes = new HashMap<String, String>();
-        Set<TestTLink> tlinks = new HashSet<TestTLink>();
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            CaevoResult that = (CaevoResult) o;
-            if (!events.equals(that.events)) return false;
-            if (!timexes.equals(that.timexes)) return false;
-            return compareTlinks(that.tlinks);
-        }
-
-        private boolean compareTlinks(Set<TestTLink> otherTlinksSet) {
-            List<TestTLink> otherTlinks = new ArrayList<TestTLink>(otherTlinksSet);
-            if (tlinks.equals(otherTlinks)) return true;
-            for (TestTLink testTLink : tlinks) {
-                if (otherTlinks.contains(testTLink)) continue;
-                else {
-                    TestTLink reverseTestTlink = new TestTLink(testTLink.event2, testTLink.event1, TLink.invertRelation(testTLink.relation));
-                    if (otherTlinks.contains(reverseTestTlink)) continue;
-                    else return false;
-                }
-            }
-            return true;
-        }
-
-        @Override
-        public int hashCode() {
-            int result = events.hashCode();
-            result = 31 * result + timexes.hashCode();
-            result = 31 * result + tlinks.hashCode();
-            return result;
-        }
-
-        public CaevoResult(File resultFile, boolean expected) throws Exception {
-            if (expected) {
-                init(resultFile);
-            } else {
-                initXml(resultFile);
-            }
-        }
-
-        private void init(File resultFile) throws IOException {
-            BufferedReader reader = new BufferedReader(new FileReader(resultFile));
-            String line = reader.readLine();
-            while (line != null) {
-                String[] st = line.split(",");
-                switch (line.charAt(0)) {
-                    case 'e':
-                        events.put(st[0], st[1]);
-                        break;
-                    case 't':
-                        timexes.put(st[0], st[1]);
-                        break;
-                    case 'l':
-                        tlinks.add(new TestTLink(st[1], st[2], st[3]));
-                        break;
-                    default:
-                        throw new RuntimeException("Unexpected line format in expected result file "+resultFile.getName());
-                }
-                line = reader.readLine();
-            }
-        }
-
-        private void initXml(File resultFile) throws Exception {
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = dbf.newDocumentBuilder();
-            Document doc = builder.parse(resultFile);
-            XPathFactory xPathFactory = XPathFactory.newInstance();
-            XPath xPath = xPathFactory.newXPath();
-            XPathExpression eventExpression = xPath.compile("//event");
-            XPathExpression timexExpression = xPath.compile("//timex");
-            XPathExpression tlinkExpression = xPath.compile("//tlink");
-
-            NodeList nodeList = (NodeList) eventExpression.evaluate(doc, XPathConstants.NODESET);
-            for (int i = 0; i < nodeList.getLength(); i++) {
-                Node node = nodeList.item(i);
-                NamedNodeMap attributes = node.getAttributes();
-                String eventId = attributes.getNamedItem("eiid").getTextContent();
-                String eventString = attributes.getNamedItem("string").getTextContent();
-                events.put(eventId, eventString);
-            }
-
-            nodeList = (NodeList) timexExpression.evaluate(doc, XPathConstants.NODESET);
-            for (int i = 0; i < nodeList.getLength(); i++) {
-                Node node = nodeList.item(i);
-                NamedNodeMap attributes = node.getAttributes();
-                String timexId = attributes.getNamedItem("tid").getTextContent();
-                if (timexId.equals("t0")) continue;
-                String timexValue = attributes.getNamedItem("value").getTextContent();
-                timexes.put(timexId, timexValue);
-            }
-
-            nodeList = (NodeList) tlinkExpression.evaluate(doc, XPathConstants.NODESET);
-            for (int i = 0; i < nodeList.getLength(); i++) {
-                Node node = nodeList.item(i);
-                NamedNodeMap attributes = node.getAttributes();
-                String tlinkEvent1 = attributes.getNamedItem("event1").getTextContent();
-                String tlinkEvent2 = attributes.getNamedItem("event2").getTextContent();
-                if (tlinkEvent1.equals("t0") || tlinkEvent2.equals("t0")) continue;
-                String tlinkRelation = attributes.getNamedItem("relation").getTextContent();
-                tlinks.add(new TestTLink(tlinkEvent1, tlinkEvent2, tlinkRelation));
-            }
-        }
-
-        class TestTLink {
-            public TestTLink(String event1, String event2, String relation) {
-                this.event1 = event1;
-                this.event2 = event2;
-                this.relation = TLink.Type.valueOf(relation);
-            }
-
-            TestTLink(String event1, String event2, TLink.Type relation) {
-                this.event1 = event1;
-                this.event2 = event2;
-                this.relation = relation;
-            }
-
-            String event1;
-            String event2;
-            TLink.Type relation;
-
-            @Override
-            public boolean equals(Object o) {
-                if (this == o) return true;
-                if (o == null || getClass() != o.getClass()) return false;
-
-                TestTLink tLink = (TestTLink) o;
-                if (!event1.equals(tLink.event1)) return false;
-                if (!event2.equals(tLink.event2)) return false;
-                if (relation != tLink.relation) return false;
-                return true;
-            }
-
-            @Override
-            public int hashCode() {
-                int result = event1.hashCode();
-                result = 31 * result + event2.hashCode();
-                result = 31 * result + relation.hashCode();
-                return result;
             }
         }
     }
