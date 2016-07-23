@@ -6,12 +6,11 @@ jdk:
 env:
   = RESOURCES=$TRAVIS_BUILD_DIR/src/test/resources
   - JWNL=$RESOURCES/jwnl_file_properties.xml
+  - WORDNET=$RESOURCES/wordnet
 
 before_script:
-#  - curl http://wordnetcode.princeton.edu/wn3.1.dict.tar.gz | tar xvz
-  - wget http://wordnetcode.princeton.edu/wn3.1.dict.tar.gz
-  - mkdir -p $RESOURCES
-  - tar -xzvf wn3.1.dict.tar.gz -C $RESOURCES
+  - mkdir -p $WORDNET
+  - curl http://wordnetcode.princeton.edu/wn3.1.dict.tar.gz | tar -xzv -C $WORDNET
 
 install: true
 
@@ -20,10 +19,3 @@ script: mvn clean install
 cache:
   directories:
   - $HOME/.m2
-
-notifications:
-  email:
-    recipients:
-      - a.toledo.uu.nl@gmail.com
-    on_success: change
-    on_failure: always
