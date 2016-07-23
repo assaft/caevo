@@ -74,7 +74,6 @@ public class MainTest {
                 }
             }
         }
-            System.err.println("Failed:" +failed);
         if (instances.length > 1) {
             for (int i = 0; i < accumulatedStats.length; i++) {
                 accumulatedStats[i] /= instances.length;
