@@ -6,7 +6,7 @@ jdk:
 before_script:
 #  - curl http://wordnetcode.princeton.edu/wn3.1.dict.tar.gz | tar xvz
   - wget http://wordnetcode.princeton.edu/wn3.1.dict.tar.gz
-  - mkdir ~/caevo/src/test/resources
+  - mkdir -p ~/caevo/src/test/resources
   - tar -xzvf wn3.1.dict.tar.gz -C ~/caevo/src/test/resources
 
 env:
