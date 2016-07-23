@@ -79,7 +79,7 @@ public class MainTest {
             }
         }
         if (!failed.isEmpty()) {
-            System.out.println("Failed:" +failed);
+            System.err.println("Failed tests:" +failed);
             fail();
         }
     }
