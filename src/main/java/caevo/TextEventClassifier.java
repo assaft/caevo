@@ -82,8 +82,7 @@ public class TextEventClassifier {
   	loadWordNet();
   }
 
-  public TextEventClassifier(SieveDocuments docs, WordNet wordnet) {
-  	this.docs = docs;
+  public TextEventClassifier(WordNet wordnet) {
   	this.wordnet = wordnet;
   }
 

@@ -28,15 +28,16 @@ public class TimexClassifier {
 //String _serializedGrammar = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz";
 //  private String _nerPath = "edu/stanford/nlp/models/ner/english.all.3class.distsim.crf.ser.gz";
 
-    boolean debug = false;
+  boolean debug = false;
+  
+  AnnotationPipeline timexPipeline = null;
+  
 
-    AnnotationPipeline timexPipeline = null;
-    SieveDocuments thedocs;
+  public TimexClassifier() {
 
-
-    public TimexClassifier(SieveDocuments docs) {
-        this.thedocs = docs;
-    }
+  	// Load the pipeline of annotations needed for Timex markup.
+    timexPipeline = getPipeline(true);
+  }
 
 
     /**
@@ -75,28 +76,21 @@ public class TimexClassifier {
 
 
 //  "URL"
-
-    /**
-     * Use the global .info file and destructively mark it up for time expressions.
-     */
-    public void markupTimex3() {
-        markupTimex3(thedocs);
-    }
-
-    /**
-     * Use the given documents object to destructively mark it up for time expressions.
-     */
-    public void markupTimex3(SieveDocuments docs) {
-        for (SieveDocument doc : docs.getDocuments()) {
-            if (debug) System.out.println("doc = " + doc.getDocname());
-            List<SieveSentence> sentences = doc.getSentences();
-            List<Timex> dcts = doc.getDocstamp();
-            if (dcts != null && dcts.size() > 1) {
-                System.out.println("markupTimex3 dct size is " + dcts.size());
-                System.exit(1);
-            }
-            String docDate = (dcts != null && dcts.size() > 0) ? dcts.get(0).getValue() : null;
-            if (debug) System.out.println("markupTimex3 docDate = " + docDate);
+  
+  /**
+   * Use the given documents object to destructively mark it up for time expressions.
+   */
+  public void markupTimex3(SieveDocuments docs) {
+    for( SieveDocument doc : docs.getDocuments() ) {
+      if( debug ) System.out.println("doc = " + doc.getDocname());
+      List<SieveSentence> sentences = doc.getSentences();
+      List<Timex> dcts = doc.getDocstamp();
+      if( dcts != null && dcts.size() > 1 ) {
+        System.out.println("markupTimex3 dct size is " + dcts.size());
+        System.exit(1);
+      }
+      String docDate = (dcts != null && dcts.size() > 0) ? dcts.get(0).getValue() : null;
+      if( debug ) System.out.println("markupTimex3 docDate = " + docDate);
 //      System.out.println(sentences.size() + " sentences.");
             int tid = 1;
 
