@@ -4,6 +4,8 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
@@ -28,7 +30,7 @@ public class FileVsBufferTest extends TestCase {
 		docs1.writeToXML("output.xml");
 		List<String> lines = Util.readLinesFromFile("output.xml");
 		StringBuilder fileOutput = new StringBuilder();
-		String separator = System.getProperty("line.separator");
+		String separator = "\r\n"; // to match Format.getPrettyXML() used by docs2.writeToString() below  
 		for (String line : lines) {
 			fileOutput.append(line);
 			fileOutput.append(separator);
@@ -40,6 +42,12 @@ public class FileVsBufferTest extends TestCase {
 		String bufferOutput = docs2.writeToString();
 		
 		// compare results
+		if (!fileOutput.toString().equals(bufferOutput)) {
+			System.out.println("Not equal!");
+			Files.write(Paths.get("file1.xml"), fileOutput.toString().getBytes("UTF-8"));
+			Files.write(Paths.get("file2.xml"), bufferOutput.getBytes("UTF-8"));
+		}
+		
 		assertEquals("Generated XML.",fileOutput.toString(),bufferOutput);
 	}
 	
