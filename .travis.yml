@@ -3,14 +3,15 @@ language: java
 jdk:
   - oraclejdk8
 
+env:
+  = RESOURCES=$TRAVIS_BUILD_DIR/src/test/resources
+  - JWNL=$RESOURCES/jwnl_file_properties.xml
+
 before_script:
 #  - curl http://wordnetcode.princeton.edu/wn3.1.dict.tar.gz | tar xvz
   - wget http://wordnetcode.princeton.edu/wn3.1.dict.tar.gz
-  - mkdir -p ~/caevo/src/test/resources
-  - tar -xzvf wn3.1.dict.tar.gz -C ~/caevo/src/test/resources
-
-env:
-  - JWNL=~/caevo/src/test/resources/jwnl_file_properties.xml
+  - mkdir -p $RESOURCES
+  - tar -xzvf wn3.1.dict.tar.gz -C $RESOURCES
 
 install: true
 
