@@ -3,9 +3,19 @@ language: java
 jdk:
   - oraclejdk8
 
+before_script:
+#  - curl http://wordnetcode.princeton.edu/wn3.1.dict.tar.gz | tar xvz
+  - wget http://wordnetcode.princeton.edu/wn3.1.dict.tar.gz
+  - mkdir ~/caevo/src/test/resources
+  - tar -xzvf wn3.1.dict.tar.gz -C ~/caevo/src/test/resources
+
 install: true
 
 script: mvn clean install
+
+cache:
+  directories:
+  - $HOME/.m2
 
 notifications:
   email:
@@ -13,3 +23,4 @@ notifications:
       - a.toledo.uu.nl@gmail.com
     on_success: change
     on_failure: always
+	
