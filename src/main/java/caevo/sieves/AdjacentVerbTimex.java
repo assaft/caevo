@@ -8,6 +8,7 @@ import caevo.util.TreeOperator;
 import caevo.util.WordNet;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.ling.IndexedWord;
 import edu.stanford.nlp.trees.GrammaticalRelation;
 import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.trees.TypedDependency;
@@ -87,7 +88,6 @@ public class AdjacentVerbTimex implements Sieve {
             TIMEX_GOVERNS_EVENT = CaevoProperties.getBoolean("AdjacentVerbTimex.TIMEX_GOVERNS_EVENT", true);
             numInterWords = CaevoProperties.getInt("AdjacentVerbTimex.numInterWords", 0);
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         // SIEVE CODE
@@ -114,13 +114,14 @@ public class AdjacentVerbTimex implements Sieve {
 
                 // special case: "between <t1> and <t2>" - t2 should be linked to the same event as t1, with the complimentary relation.
                 if (between_and != null) {
-                    proposed.add(new EventTimeLink(between_and.getId1(), timex.getTid(), TLink.Type.BEFORE_OR_OVERLAP));
+                    proposed.add(new EventTimeLink(between_and.getId1(), timex.getTid(), TLink.Type.ENDED_BY));
                     between_and = null;
                     continue;
                 }
 
                 // Iterate over events for fixed timex...
                 for (TextEvent event : sent.events()) {
+                    tree = sent.getParseTree();
                     nounEvent = false;
                     // Ensure event passes eligibility criteria specified in validateEvent
                     if (!validateEvent(event, tree, sent)) continue;
@@ -128,11 +129,16 @@ public class AdjacentVerbTimex implements Sieve {
                     // Get parameters used for "flat" notion of adjacency
                     // Distance from event to timex (positive if event is before timex)
                     int eventToTimexDist = timex.getTokenOffset() - event.getIndex();
+
+                    List<Tree> treeLeaves = tree.getLeaves();
+                    int eventToTimexTreeDist = tree.pathNodeToNode(treeLeaves.get(timex.getTokenOffset() - 1), treeLeaves.get(event.getIndex() - 1)).size();
+                    if (timex.getTokenOffset() < event.getIndex()) eventToTimexTreeDist *= -1;
+
                     // booleans for ordering
                     boolean verbIsBeforeTimex =
-                            (eventToTimexDist <= (numInterWords + 1) && eventToTimexDist >= 1);
+                            (eventToTimexTreeDist <= (numInterWords + 1) && eventToTimexTreeDist >= 1);
                     boolean timexIsBeforeVerb =
-                            (eventToTimexDist * (-1) <= (numInterWords + 1) && eventToTimexDist <= -1);
+                            (eventToTimexTreeDist * (-1) <= (numInterWords + 1) && eventToTimexTreeDist <= -1);
 
                     // Get parameters used for "structured" notion of adjacency
                     // Dependency relation between event and time if applicable
@@ -191,7 +197,7 @@ public class AdjacentVerbTimex implements Sieve {
 
                     // if verb governs timex, use these rules
                     else if (EVENT_GOVERNS_TIMEX && eventDoesGovernTimex) {
-                        depTlink_et = eventGovernsTimex(eventToTimexDist, event, timex, sent, tree, depRel);
+                        depTlink_et = eventGovernsTimex(event, timex, sent, depRel);
 
                     }
                     // if timex governs verb, use these rules
@@ -232,8 +238,15 @@ public class AdjacentVerbTimex implements Sieve {
 
     private int numGovernorOf(List<TypedDependency> deps, int tokenOffset) {
         for (TypedDependency typedDependency : deps) {
-            if (typedDependency.dep().index() == tokenOffset && typedDependency.reln().equals(GrammaticalRelation.valueOf("nummod"))) {
-                return typedDependency.gov().index();
+            if (typedDependency.dep().index() == tokenOffset) {
+                String depWord = typedDependency.dep().word();
+                try {
+                    Integer.parseInt(depWord);
+                    continue; // dep is already a number, move on
+                } catch (NumberFormatException ignored) {
+                }
+                if (typedDependency.reln().equals(GrammaticalRelation.valueOf("nummod")))
+                    return typedDependency.gov().index();
             }
         }
         return tokenOffset;
@@ -260,17 +273,14 @@ public class AdjacentVerbTimex implements Sieve {
     }
 
     /**
-     * @param eventToTimexDist
      * @param event
      * @param timex
      * @param sent
-     * @param tree
      * @param depRel
      * @return a non-null tlink just in case the implemented criteria are satisfied
      * @criteria is_included no matter what!
      */
-    private TLink eventGovernsTimex(int eventToTimexDist, TextEvent event,
-                                    Timex timex, SieveSentence sent, Tree tree, GrammaticalRelation depRel) {
+    private TLink eventGovernsTimex(TextEvent event, Timex timex, SieveSentence sent, GrammaticalRelation depRel) {
         TLink tlink = null;
         if (timex.getText().toLowerCase().equals("now")) {
             if (event.getAspect() == TextEvent.Aspect.PROGRESSIVE)
@@ -284,6 +294,10 @@ public class AdjacentVerbTimex implements Sieve {
                 tlink = new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.BEFORE);
             } else if ("after".equalsIgnoreCase(depRelType)) {
                 tlink = new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.AFTER);
+            } else if ("on".equalsIgnoreCase(depRelType) || "at".equalsIgnoreCase(depRelType)
+                    || "in".equalsIgnoreCase(depRelType) || "during".equalsIgnoreCase(depRelType)
+                    || "within".equalsIgnoreCase(depRelType) || "between".equalsIgnoreCase(depRelType)) {
+                tlink = new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.IS_INCLUDED);
             }
         } else {
             // default
@@ -333,13 +347,61 @@ public class AdjacentVerbTimex implements Sieve {
                 // the word after the duration is a temporal preposition or adverb
                 (tokenFollowingTimex(sent, timex).get(CoreAnnotations.PartOfSpeechAnnotation.class).equals("IN") ||
                         tokenFollowingTimex(sent, timex).get(CoreAnnotations.PartOfSpeechAnnotation.class).equals("RB"))) {
-            // [duration]-[preposition]-[event] ("2 days after they came")
             CoreLabel token = tokenFollowingTimex(sent, timex);
-            // relation types are reversed because he link is from the event viewpoint
-            if ("before".equalsIgnoreCase(token.word()) || "prior".equalsIgnoreCase(token.word())) {
-                tlink = new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.AFTER);
-            } else if ("after".equalsIgnoreCase(token.word()) || "since".equalsIgnoreCase(token.word())) {
-                tlink = new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.BEFORE);
+            boolean separatedByComma = false;
+            for (int i = timex.getTokenOffset(); i < event.getIndex(); i++) {
+                if (sent.tokens().get(i - 1).word().equals(",")) {
+                    separatedByComma = true;
+                    break;
+                }
+            }
+            if (separatedByComma) {
+                // [duration]-[preposition]-[comma]-[event] ("2 days before he told, we *heard*...")
+                // relation types are taken as-is
+                if ("before".equalsIgnoreCase(token.word()) || "prior".equalsIgnoreCase(token.word())) {
+                    tlink = new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.BEFORE);
+                } else if ("after".equalsIgnoreCase(token.word()) || "since".equalsIgnoreCase(token.word())) {
+                    tlink = new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.AFTER);
+                }
+            } else {
+                // [duration]-[preposition]-[event] ("2 days after they *came*...")
+                // relation types are reversed because the link is from the event viewpoint
+                if ("before".equalsIgnoreCase(token.word()) || "prior".equalsIgnoreCase(token.word())) {
+                    tlink = new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.AFTER);
+                } else if ("after".equalsIgnoreCase(token.word()) || "since".equalsIgnoreCase(token.word())) {
+                    tlink = new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.BEFORE);
+                }
+            }
+        } else if (timex.getType().equals(Timex.Type.DATE)) {
+            // is the word preceding the date is a temporal preposition?
+            CoreLabel token = tokenPrecedingTimex(sent, timex);
+            if (token.get(CoreAnnotations.PartOfSpeechAnnotation.class).equals("IN") ||
+                    token.get(CoreAnnotations.PartOfSpeechAnnotation.class).equals("TO")) {
+                if (token.word().equalsIgnoreCase("between")) {
+                    tlink = between_and = new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.BEGUN_BY);
+                } else if (token.word().equalsIgnoreCase("from") ||
+                        token.word().equalsIgnoreCase("starting") ||
+                        token.word().equalsIgnoreCase("beginning")) {
+                    tlink = new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.BEGUN_BY);
+                } else if (token.word().equalsIgnoreCase("to") ||
+                        token.word().equalsIgnoreCase("until") ||
+                        token.word().equalsIgnoreCase("through")) {
+                    tlink = new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.ENDED_BY);
+                } else if (token.word().equalsIgnoreCase("after") ||
+                        token.word().equalsIgnoreCase("following") ||
+                        token.word().equalsIgnoreCase("at")) {
+                    tlink = new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.AFTER);
+                } else if (token.word().equalsIgnoreCase("throughout") ||
+                        token.word().equalsIgnoreCase("for") ||
+                        token.word().equalsIgnoreCase("at")) {
+                    tlink = new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.DURING);
+                } else if (token.word().equalsIgnoreCase("in") ||
+                        token.word().equalsIgnoreCase("on") ||
+                        token.word().equalsIgnoreCase("during") ||
+                        token.word().equalsIgnoreCase("within") ||
+                        token.word().equalsIgnoreCase("over")) {
+                    tlink = new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.IS_INCLUDED);
+                }
             }
         } else {
             // default
@@ -349,6 +411,11 @@ public class AdjacentVerbTimex implements Sieve {
             System.out.printf("TimexVerb: %s\n%s | %s", sent.sentence(), event.getString(), timex.getText());
         }
         return tlink;
+    }
+
+    private CoreLabel tokenPrecedingTimex(SieveSentence sent, Timex timex) {
+        // remember, tokenOffset is 1-based!
+        return sent.tokens().get(timex.getTokenOffset() - 2);
     }
 
     private CoreLabel tokenFollowingTimex(SieveSentence sent, Timex timex) {
@@ -381,7 +448,7 @@ public class AdjacentVerbTimex implements Sieve {
             String precTimexPos = posTagFromTree(tree, sent, precTimexIndex);
             TLink tlink;
             // IN is the tag for prepositions and suborinating conjunctions
-            if (precTimexPos != null && precTimexPos.equals("IN")) {
+            if (precTimexPos != null && (precTimexPos.equals("IN") || precTimexPos.equals("TO"))) {
                 // Different rules for different prepositions
                 // As of now the rules are solely based on preposition string
                 // TODO: add more details to rules based on properties of event,
@@ -391,7 +458,7 @@ public class AdjacentVerbTimex implements Sieve {
             }
             // If the word right before the timex is not IN
             else {
-                tlink = new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.IS_INCLUDED);
+                tlink = new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.VAGUE);
             }
             return tlink;
         }
@@ -406,13 +473,30 @@ public class AdjacentVerbTimex implements Sieve {
      */
     private TypedDependency getDepSentIndexPair(List<TypedDependency> deps, int sentIndex1, int sentIndex2) {
         // sentIndex_i conforms to the convention that index starts at 1!
-        TypedDependency foundDep = null;
         for (TypedDependency dep : deps) {
             if (sentIndex1 == dep.gov().index() && sentIndex2 == dep.dep().index()) {
-                foundDep = dep;
+                return dep;
             }
         }
-        return foundDep;
+        // no direct dependency found, try a transitive dependency
+        for (TypedDependency dependency : deps) {
+            if (sentIndex1 == dependency.gov().index()) {
+                IndexedWord dep = dependency.dep();
+                for (TypedDependency secondaryDependency : deps) {
+                    if (dep.index() == secondaryDependency.gov().index() && sentIndex2 == secondaryDependency.dep().index()) {
+                        if (secondaryDependency.reln().equals(dependency.reln()) ||
+                                (dependency.reln().getShortName().startsWith("nmod") &&
+                                        secondaryDependency.reln().getShortName().startsWith("nmod")) ||
+                                (dependency.reln().getShortName().startsWith("nmod") &&
+                                        secondaryDependency.reln().getShortName().equals("nummod"))) {
+                            // same relation (more or less)
+                            return new TypedDependency(secondaryDependency.reln(), dependency.gov(), secondaryDependency.dep());
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     // validateTime ensures that timex value meets criteria
@@ -467,16 +551,16 @@ public class AdjacentVerbTimex implements Sieve {
     private TLink applyPrepVerbTimexRules(TextEvent event, Timex timex, String prepText) {
         if ("between".equalsIgnoreCase(prepText)) {
             // "between" never appears with a single timex...
-            between_and = new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.OVERLAP_OR_AFTER);
+            between_and = new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.BEGUN_BY);
             return between_and;
         } else if (prepText.equals("in")) {
             return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.IS_INCLUDED);
         } else if (prepText.equals("on")) {
             return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.IS_INCLUDED);
         } else if (prepText.equals("for")) {
-            return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.SIMULTANEOUS);
+            return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.DURING);
         } else if (prepText.equals("at")) {
-            return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.SIMULTANEOUS);
+            return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.DURING);
         } else if (prepText.equals("by")) {
             return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.VAGUE);
         } else if (prepText.equals("over")) {
@@ -484,19 +568,19 @@ public class AdjacentVerbTimex implements Sieve {
         } else if (prepText.equals("during")) {
             return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.IS_INCLUDED);
         } else if (prepText.equals("throughout")) {
-            return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.SIMULTANEOUS);
+            return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.DURING);
         } else if (prepText.equals("within")) {
             return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.IS_INCLUDED);
-        } else if (prepText.equals("until")) {
-            return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.BEFORE);
         } else if (prepText.equals("from")) {
-            return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.AFTER);
+            return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.BEGUN_BY);
         } else if (prepText.equals("after")) {
             return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.AFTER);
         } else if (prepText.equals("before")) {
             return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.BEFORE);
-        } else if (prepText.equals("through")) {
-            return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.BEFORE_OR_OVERLAP);
+        } else if (prepText.equals("come")) {
+            return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.BEFORE);
+        } else if (prepText.equals("to") || prepText.equals("through") || prepText.equals("until")) {
+            return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.ENDED_BY);
         }
         // If we encounter a different IN (prep/sub conj)
         else {
