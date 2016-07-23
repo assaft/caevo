@@ -9,6 +9,9 @@ before_script:
   - mkdir ~/caevo/src/test/resources
   - tar -xzvf wn3.1.dict.tar.gz -C ~/caevo/src/test/resources
 
+env:
+  - JWNL=~/caevo/src/test/resources/jwnl_file_properties.xml
+
 install: true
 
 script: mvn clean install
@@ -23,4 +26,3 @@ notifications:
       - a.toledo.uu.nl@gmail.com
     on_success: change
     on_failure: always
-	
