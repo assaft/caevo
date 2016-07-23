@@ -269,8 +269,8 @@ public class Tempeval3Parser {
 
     // Identify all time expressions.
     if( sutime ) {
-      TimexClassifier classifier = new TimexClassifier(labelDocs);
-      classifier.markupTimex3();
+      TimexClassifier classifier = new TimexClassifier();
+      classifier.markupTimex3(labelDocs);
     }
 
     // Train on 9 folds and label on the remaining 1 fold.
@@ -306,8 +306,8 @@ public class Tempeval3Parser {
     
     // Identify all time expressions.
     if( sutime ) {
-      TimexClassifier classifier = new TimexClassifier(docs);
-      classifier.markupTimex3();
+      TimexClassifier classifier = new TimexClassifier();
+      classifier.markupTimex3(docs);
     }
     
     // Identify all events.

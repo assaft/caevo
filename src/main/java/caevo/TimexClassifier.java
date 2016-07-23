@@ -34,11 +34,12 @@ public class TimexClassifier {
   boolean debug = false;
   
   AnnotationPipeline timexPipeline = null;
-  SieveDocuments thedocs;
   
 
-  public TimexClassifier(SieveDocuments docs) {
-    this.thedocs = docs;
+  public TimexClassifier() {
+
+  	// Load the pipeline of annotations needed for Timex markup.
+    timexPipeline = getPipeline(true);
   }
   
 
@@ -78,12 +79,6 @@ public class TimexClassifier {
   
 //  "URL"
   
-  /**
-   * Use the global .info file and destructively mark it up for time expressions.
-   */
-  public void markupTimex3() {
-  	markupTimex3(thedocs);
-  }
   /**
    * Use the given documents object to destructively mark it up for time expressions.
    */
@@ -196,9 +191,6 @@ public class TimexClassifier {
    * @return A list of Timex objects with resolved time values.
    */
   private List<Timex> markupTimex3(List<CoreLabel> words, int idcounter, String docDate) {
-    // Load the pipeline of annotations needed for Timex markup.
-    if( timexPipeline == null )
-      timexPipeline = getPipeline(true);
     
     // Extract TIMEX3 entities.
     Annotation annotation = SUTimeMain.textToAnnotation(timexPipeline, buildStringFromCoreLabels(words, 0, words.size()), docDate);

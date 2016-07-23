@@ -57,6 +57,11 @@ public class Main {
 	boolean useClosure = true;
 	boolean force24hrDCT = true;
 	String dctHeuristic = "none";
+
+	// parser 
+	LexicalizedParser parser;
+	TreebankLanguagePack tlp;
+	GrammaticalStructureFactory gsf;
 	
 	// Which dataset do we load?
   public static enum DatasetType { TRAIN, DEV, TEST, ALL };
@@ -131,8 +136,21 @@ public class Main {
 		
 		// Load the sieve list.
 		sieveClasses = loadSieveList();
+		
+		// Initialize the parser.
+		parser = Ling.createParser(serializedGrammar);
+		if( parser == null ) {
+			System.out.println("Failed to create parser from " + serializedGrammar);
+			System.exit(1);
+		}
+		tlp = new PennTreebankLanguagePack();
+		gsf = tlp.grammaticalStructureFactory();
+		
+		timexClassifier = new TimexClassifier();
+		
+		eventClassifier = new TextEventClassifier(wordnet);
+		eventClassifier.loadClassifiers();
 	}
-
 
 	private String[] loadSieveList() {
 		String filename = System.getProperty("sieves");
@@ -605,15 +623,6 @@ public class Main {
 	public void markupRawXML(String path) {
 		SieveDocuments docs = new SieveDocuments();
 		
-		// Initialize the parser.
-		LexicalizedParser parser = Ling.createParser(serializedGrammar);
-		if( parser == null ) {
-			System.out.println("Failed to create parser from " + serializedGrammar);
-			System.exit(1);
-		}
-		TreebankLanguagePack tlp = new PennTreebankLanguagePack();
-		GrammaticalStructureFactory gsf = tlp.grammaticalStructureFactory();
-
 		// If a directory: parse a directory of XML files.
 		if( Directory.isDirectory(path) ) {
 			for( String file : Directory.getFilesSorted(path) ) {
@@ -660,15 +669,6 @@ public class Main {
 	}
 	public SieveDocuments markupRawText(String input, boolean isPath) {
 		SieveDocuments docs = new SieveDocuments();
-
-		// Initialize the parser.
-		LexicalizedParser parser = Ling.createParser(serializedGrammar);
-		if( parser == null ) {
-			System.out.println("Failed to create parser from " + serializedGrammar);
-			System.exit(1);
-		}
-		TreebankLanguagePack tlp = new PennTreebankLanguagePack();
-		GrammaticalStructureFactory gsf = tlp.grammaticalStructureFactory();
 
 		// If a directory: parse a directory of XML files.
 		if (isPath) {
@@ -738,10 +738,6 @@ public class Main {
 	 * Assumes the SieveDocuments has its text parsed.
 	 */
 	public void markupEvents(SieveDocuments info) {
-		if( eventClassifier == null ) {
-			eventClassifier = new TextEventClassifier(info, wordnet);
-			eventClassifier.loadClassifiers();
-		}
 		eventClassifier.extractEvents(info);
 	}
 	
@@ -750,15 +746,13 @@ public class Main {
 	 */
 	public void markupTimexes(SieveDocuments info) {
 		if( timexClassifier == null ) {
-			timexClassifier = new TimexClassifier(info);
+			timexClassifier = new TimexClassifier();
 			try {
 				timexClassifier.setDebug(CaevoProperties.getBoolean("Main.debug", false));
 			} catch (IOException ignore) {
 			}
-			timexClassifier.markupTimex3();
-		} else {
-			timexClassifier.markupTimex3(info);
 		}
+		timexClassifier.markupTimex3(info);
 	}
 	
 	public SieveDocuments getDataset(DatasetType type, SieveDocuments docs) {
