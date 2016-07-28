@@ -1,23 +1,10 @@
 package caevo.util;
 
-import java.io.BufferedReader;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Vector;
-
 import caevo.NERSpan;
 import caevo.SieveSentence;
 import caevo.TextEvent;
 import edu.stanford.nlp.ling.HasWord;
 import edu.stanford.nlp.ling.Word;
-import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
 import edu.stanford.nlp.process.DocumentPreprocessor;
 import edu.stanford.nlp.process.PTBTokenizer;
 import edu.stanford.nlp.process.PTBTokenizer.PTBTokenizerFactory;
@@ -26,11 +13,15 @@ import edu.stanford.nlp.process.TokenizerFactory;
 import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.trees.TypedDependency;
 
+import java.io.BufferedReader;
+import java.io.StringReader;
+import java.util.*;
+
 /**
  * Nate Chambers
  */
 public class Ling {
-  public enum Tense { present, past, future };
+  public enum Tense {present, past, future}
   public static final String DEP_SUBJECT = "s";
   public static final String DEP_OBJECT  = "o";
   public static final String DEP_PREP    = "p";
@@ -45,85 +36,70 @@ public class Ling {
 //    return Tense.present;
 //  }
   
-  public static LexicalizedParser createParser(String grammarPath) {
-    return LexicalizedParser.loadModel(grammarPath);
-  }
-  
   /**
    * @return true if the given string is a wh-word
    */
   public static boolean isWhWord(String token) {
-    if( token.equals("who") ||
-        token.equals("what") ||
-        token.equals("where") ||
-        token.equals("when") ||
-        token.equals("why") ||
-        token.equals("which") ||
-        token.equals("how") )
-      return true;
-    else return false;
+    return token.equals("who") ||
+            token.equals("what") ||
+            token.equals("where") ||
+            token.equals("when") ||
+            token.equals("why") ||
+            token.equals("which") ||
+            token.equals("how");
   }
   
   /**
    * Returns true if the given string is a person reference
    */
   public static boolean isPersonRef(String token) {
-    if( token.equals("man") || 
-        token.equals("woman") ||
-        token.equals("men") ||
-        token.equals("women") ||
-        token.equals("person") ||
-        token.equals("people") ||
-        token.equals("boy") ||
-        token.equals("girl")
-    ) 
-      return true;
-    else return false;
+    return token.equals("man") ||
+            token.equals("woman") ||
+            token.equals("men") ||
+            token.equals("women") ||
+            token.equals("person") ||
+            token.equals("people") ||
+            token.equals("boy") ||
+            token.equals("girl");
   }
 
   public static boolean isAbstractPerson(String token) {
-    if( token.equals("nobody") || 
-        token.equals("noone") || 
-        token.equals("someone") || 
-        token.equals("somebody") || 
-        token.equals("anyone") || 
-        token.equals("anybody") 
-        )
-      return true;
-    else return false;
+    return token.equals("nobody") ||
+            token.equals("noone") ||
+            token.equals("someone") ||
+            token.equals("somebody") ||
+            token.equals("anyone") ||
+            token.equals("anybody");
   }
 
   /**
    * Returns true if the given string is a person pronoun
    */
   public static boolean isPersonPronoun(String token) {
-    if( token.equals("he") || 
-        token.equals("him") ||
-        token.equals("his") ||
-        token.equals("himself") ||
-        token.equals("she") ||
-        token.equals("her") ||
-        token.equals("hers") ||
-        token.equals("herself") ||
-        token.equals("you") ||
-        token.equals("yours") ||
-        token.equals("yourself") ||
-        token.equals("we") ||
-        token.equals("us") ||
-        token.equals("our") ||
-        token.equals("ours") ||
-        token.equals("ourselves") ||
-        token.equals("i") ||
-        token.equals("me") ||
-        token.equals("my") ||
-        token.equals("mine") ||
-        token.equals("they") ||
-        token.equals("them") ||
-        token.equals("their") ||
-        token.equals("themselves")
-    )
-      return true;
-    else return false;
+    return token.equals("he") ||
+            token.equals("him") ||
+            token.equals("his") ||
+            token.equals("himself") ||
+            token.equals("she") ||
+            token.equals("her") ||
+            token.equals("hers") ||
+            token.equals("herself") ||
+            token.equals("you") ||
+            token.equals("yours") ||
+            token.equals("yourself") ||
+            token.equals("we") ||
+            token.equals("us") ||
+            token.equals("our") ||
+            token.equals("ours") ||
+            token.equals("ourselves") ||
+            token.equals("i") ||
+            token.equals("me") ||
+            token.equals("my") ||
+            token.equals("mine") ||
+            token.equals("they") ||
+            token.equals("them") ||
+            token.equals("their") ||
+            token.equals("themselves");
   }
 
 
@@ -131,27 +107,21 @@ public class Ling {
    * Returns true if the given string is a potential non-person pronoun
    */
   public static boolean isInanimatePronoun(String token) {
-    if( token.equals("it") ||
-        token.equals("itself") ||
-        token.equals("its") ||
-        token.equals("they") ||
-        token.equals("them") ||
-        token.equals("their") ||
-        token.equals("one")
-    ) 
-      return true;
-    else return false;
+    return token.equals("it") ||
+            token.equals("itself") ||
+            token.equals("its") ||
+            token.equals("they") ||
+            token.equals("them") ||
+            token.equals("their") ||
+            token.equals("one");
   }
   
   public static boolean isObjectReference(String token) {
-    if( token.equals("that") ||
-        token.equals("this") ||
-        token.equals("those") ||
-        token.equals("these") ||
-        token.equals("the") 
-    )
-      return true;
-    else return false;
+    return token.equals("that") ||
+            token.equals("this") ||
+            token.equals("those") ||
+            token.equals("these") ||
+            token.equals("the");
   }
 
   private static final Set<String> NUMERALS = new HashSet<String>() {{
@@ -168,9 +138,7 @@ public class Ling {
   }};
 
   public static boolean isNumber(String token) {
-    if( NUMERALS.contains(token) || token.matches("^[\\d\\s\\.-/\\\\]+$") )
-      return true;
-    return false;
+    return NUMERALS.contains(token) || token.matches("^[\\d\\s\\.-/\\\\]+$");
   }
   
   /**
@@ -272,7 +240,7 @@ public class Ling {
     if( words == null ) return null;
 
     int i = 0;
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     for( HasWord word : words ) {
       if( i > 0 ) buf.append(' ');
       buf.append(word.word());
@@ -285,7 +253,7 @@ public class Ling {
     List<List<HasWord>> sentences = new ArrayList<List<HasWord>>();
     StringReader reader = new StringReader(str);
     DocumentPreprocessor dp = new DocumentPreprocessor(reader);
-    TokenizerFactory<? extends HasWord> factory = null;
+    TokenizerFactory<? extends HasWord> factory;
 
     if( invertible ) {
       factory = PTBTokenizer.factory(true, true);
@@ -299,10 +267,8 @@ public class Ling {
 //    System.out.println("Setting splitter options=" + options);
     factory.setOptions(options);
     dp.setTokenizerFactory(factory);
-    
-    Iterator<List<HasWord>> iter = dp.iterator();
-    while( iter.hasNext() ) {
-      List<HasWord> sentence = iter.next();
+
+    for (List<HasWord> sentence : dp) {
       sentences.add(sentence);
     }
     return sentences;
@@ -358,7 +324,7 @@ public class Ling {
    * Removes all leading and trailing punctuation.
    */
   public static String trimPunctuation(String token) {
-    int start = 0, end = 0;
+    int start, end = 0;
     for( start = 0; start < token.length(); start++ ) {
       char ch = token.charAt(start);
       if( (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') )
@@ -387,10 +353,8 @@ public class Ling {
    */
   public static boolean isDefinite(Collection<TypedDependency> deps, int index) {
   	String det = getDeterminer(deps, index);
-  	if( det.startsWith("th") )
-  		return true;
-  	else
-  		return false;
+
+    return det.startsWith("th");
   }
 
   /**

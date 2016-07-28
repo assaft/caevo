@@ -1,22 +1,21 @@
 package caevo;
 
-import caevo.util.*;
+import caevo.parser.ParserAdapter;
+import caevo.util.HandleParameters;
+import caevo.util.TreeOperator;
+import caevo.util.Util;
+import caevo.util.WordNet;
 import edu.stanford.nlp.classify.Classifier;
 import edu.stanford.nlp.classify.LinearClassifierFactory;
 import edu.stanford.nlp.classify.RVFDataset;
-import edu.stanford.nlp.io.IOUtils;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.RVFDatum;
-import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
 import edu.stanford.nlp.stats.ClassicCounter;
 import edu.stanford.nlp.stats.Counter;
 import edu.stanford.nlp.trees.*;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
 import java.util.*;
 
 /**
@@ -43,7 +42,7 @@ public class TextEventClassifier {
   String wordnetPath = null;
   
   boolean ruleBased = false;
-  String modelOutDir = "eventmodels";
+    //  String modelOutDir = "eventmodels";
   String baseModelName = "event.classifier";
   int minFeatCutoff = 2;
 
@@ -108,9 +107,6 @@ public class TextEventClassifier {
   
   /**
    * Find the path from the current word, up to the first seen S node.
-   * @param tree
-   * @param wordIndex
-   * @return
    */
   private String pathToSTag(Tree tree, int wordIndex) {
   	Tree subtree = TreeOperator.indexToSubtree(tree, wordIndex);
@@ -142,7 +138,6 @@ public class TextEventClassifier {
    * not it is an event. 
    * @param sentence The sentence data structure with all parse information filled in.
    * @param wordIndex Starting from 1.
-   * @return
    */
   private Counter<String> getEventFeatures(SieveSentence sentence, Tree tree, List<TypedDependency> deps, int wordIndex) {
     Counter<String> features = new ClassicCounter<String>();
@@ -210,7 +205,6 @@ public class TextEventClassifier {
    * 1. main event identifier: is a token an event or not?
    * 2-4. Given a token is an event: tense, aspect, and its class.
    * @param docs A pre-processed .info file.
-   * @return
    */
   public Classifier<String,String> train(SieveDocuments docs, Set<String> docnames) {
     RVFDataset<String, String> eventDataset  = new RVFDataset<String, String>();
@@ -285,7 +279,7 @@ public class TextEventClassifier {
     return null;
   }
 
-  public void writeClassifiersToFile() {
+/*  public void writeClassifiersToFile() {
     String path = modelOutDir + File.separator + baseModelName;
     System.out.println("Saving the classifier to disk (" + path + ")...");
     try {
@@ -298,7 +292,7 @@ public class TextEventClassifier {
       IOUtils.writeObjectToFile(aspectClassifier, path + "-aspect");
       IOUtils.writeObjectToFile(classClassifier, path + "-class");
     } catch( Exception ex ) { ex.printStackTrace(); }
-  }
+  }*/
   
   /**
    * Classifies a single word in a sentence, returns true if it is an event, false otherwise.
@@ -310,6 +304,7 @@ public class TextEventClassifier {
    */
   public boolean isEvent(Classifier<String, String> classifier, SieveSentence sentence, Tree tree, List<TypedDependency> deps, int wordi) {
   	String postag = TreeOperator.indexToPOSTag(tree, wordi);
+      if (postag == null || postag.isEmpty()) return false;
 
   	// Only consider tokens with specific POS tags.
   	if( postag.startsWith("NN") || postag.startsWith("VB") || postag.startsWith("J") ||
@@ -327,8 +322,7 @@ public class TextEventClassifier {
   
   private RVFDatum<String,String> wordToDatum(SieveSentence sentence, Tree tree, List<TypedDependency> deps, int wordi) {
   	Counter<String> features = getEventFeatures(sentence, tree, deps, wordi);
-    RVFDatum<String,String> datum = new RVFDatum<String,String>(features, null);
-    return datum;
+      return new RVFDatum<String, String>(features, null);
   }
   
   /**
@@ -345,10 +339,7 @@ public class TextEventClassifier {
 
     System.out.println("tree: " + tree);
     System.out.println("wordi = " + wordi + " POS = " + POS);
-    if( POS.startsWith("VB") && (postPOS == null || !postPOS.startsWith("VB")) )
-      return true;
-    else
-      return false;
+      return POS.startsWith("VB") && (postPOS == null || !postPOS.startsWith("VB"));
   }
 
   /**
@@ -464,7 +455,7 @@ public class TextEventClassifier {
    * @param outpath File path to create.
    * @param file Name of the file in the InfoFile that you want.
    */
-  public void createEventsOnlyFile(String outpath, String file, SieveDocuments docs) {
+/*  public void createEventsOnlyFile(String outpath, String file, SieveDocuments docs) {
     try {
       System.out.println("Writing to " + outpath + "...");
       PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(outpath)));
@@ -482,7 +473,7 @@ public class TextEventClassifier {
       writer.close();
     } catch( Exception ex ) { ex.printStackTrace(); }
     
-  }
+  }*/
   
   /**
    * Read all serialized classifiers into memory.
@@ -506,10 +497,10 @@ public class TextEventClassifier {
   	}
   }
   
-  public void docsToFile(String path) {
+/*  public void docsToFile(String path) {
     docs.writeToXML(path);
   }
-  
+
   public void markupRawText(String filepath) {
     SieveDocument doc = markupRawTextToSieveDocument(filepath);
 
@@ -523,15 +514,10 @@ public class TextEventClassifier {
     outpath = filepath + ".withevents";
     Directory.stringToFile(outpath, markup);
     System.out.println("Created " + outpath);
-  }
-  
-  public SieveDocument markupRawTextToSieveDocument(String filepath) {
+  }*/
+
+    public SieveDocument markupRawTextToSieveDocument(String filepath, ParserAdapter parser) {
  // Initialize the parser.
-    LexicalizedParser parser = Ling.createParser(Main.serializedGrammar);
-    if( parser == null ) {
-    	System.out.println("Failed to create parser from " + Main.serializedGrammar);
-    	System.exit(1);
-    }
     TreebankLanguagePack tlp = new PennTreebankLanguagePack();
     GrammaticalStructureFactory gsf = tlp.grammaticalStructureFactory();
     
@@ -545,7 +531,7 @@ public class TextEventClassifier {
     return doc;
   }
 
-  public void markupPreParsedText(String path) {
+/*  public void markupPreParsedText(String path) {
     // Initialize the dependency rulebase.
     TreebankLanguagePack tlp = new PennTreebankLanguagePack();
     GrammaticalStructureFactory gsf = tlp.grammaticalStructureFactory();
@@ -567,7 +553,7 @@ public class TextEventClassifier {
    * Given a single file that contains one parse per line, create a new file that is just the raw text
    * from the parse tree leaves, marked up with XML elements around the events.
    */
-  public void markupPreParsedText(String filepath, TreeFactory tf, GrammaticalStructureFactory gsf) {
+/*  public void markupPreParsedText(String filepath, TreeFactory tf, GrammaticalStructureFactory gsf) {
     // Parse the file.
     SieveDocument doc = Tempeval3Parser.lexParsedFileToDepParsed(filepath, tf, gsf);
     if( docs == null ) docs = new SieveDocuments();
@@ -597,7 +583,7 @@ public class TextEventClassifier {
   /**
    * @param args
    */
-  public static void main(String[] args) {
+/*  public static void main(String[] args) {
     TextEventClassifier classifier = new TextEventClassifier(args);
     
     // TextEventClassifier -info <infofile> train
@@ -628,5 +614,5 @@ public class TextEventClassifier {
     	System.out.println("Created withevents.info.xml");
     }
   }
-
+*/
 }

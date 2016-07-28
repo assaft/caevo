@@ -1,10 +1,11 @@
 package caevo;
 
+import caevo.parser.ParserAdapter;
+import caevo.parser.StanfordParserAdapter;
 import caevo.sieves.Sieve;
 import caevo.tlink.TLink;
 import caevo.tlink.TimeTimeLink;
 import caevo.util.*;
-import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
 import edu.stanford.nlp.stats.ClassicCounter;
 import edu.stanford.nlp.stats.Counter;
 import edu.stanford.nlp.trees.GrammaticalStructureFactory;
@@ -58,19 +59,50 @@ public class Main {
 	boolean force24hrDCT = true;
 	String dctHeuristic = "none";
 
-	// parser 
-	LexicalizedParser parser;
+	// parser
+	ParserAdapter parser;
 	TreebankLanguagePack tlp;
 	GrammaticalStructureFactory gsf;
 	
 	// Which dataset do we load?
-  public static enum DatasetType { TRAIN, DEV, TEST, ALL };
+	public enum DatasetType {
+		TRAIN, DEV, TEST, ALL
+	}
   DatasetType dataset = DatasetType.TRAIN;
 	
 	// List the sieve class names in your desired order.
 	private String[] sieveClasses;
-    
-	
+
+	static ParserAdapter initParser(String parserClassName, String grammar) {
+		Class<? extends ParserAdapter> parserClass = StanfordParserAdapter.class; // default parser
+		if (parserClassName != null && !parserClassName.isEmpty()) {
+			try {
+				Class<?> clazz = Class.forName(parserClassName);
+				if (clazz.isAssignableFrom(ParserAdapter.class)) {
+					parserClass = (Class<? extends ParserAdapter>) clazz;
+				}
+			} catch (Exception e) {
+				System.out.println("Provided parser class is not usable. Using default parser (Stanford).");
+			}
+		}
+		ParserAdapter parser;
+		try {
+			parser = parserClass.newInstance();
+		} catch (Exception e) {
+			System.out.println("Could not create parser; Reverting to default parser (Stanford).");
+			e.printStackTrace();
+			parser = new StanfordParserAdapter();
+		}
+		try {
+			parser.init(grammar);
+		} catch (Exception e) {
+			System.out.println("Exception encountered while configuring the parser! Operation aborted.");
+			e.printStackTrace();
+			System.exit(-4);
+		}
+		return parser;
+	}
+
 	/**
 	 * Constructor: give it the command-line arguments.
 	 */
@@ -81,6 +113,11 @@ public class Main {
 		// Read the properties from disk at the location specified by -Dprops=XXXXX
 		try {
 			CaevoProperties.load();
+
+			// initialize parser
+			String parserClassStr = CaevoProperties.getString("Main.parser");
+			this.parser = initParser(parserClassStr, serializedGrammar);
+
 			// Look for a given pre-processed InfoFile
 			infopath = CaevoProperties.getString("Main.info", null);
 			// Overwrite these globals if they are in the properties file.
@@ -136,13 +173,11 @@ public class Main {
 		
 		// Load the sieve list.
 		sieveClasses = loadSieveList();
-		
-		// Initialize the parser.
-		parser = Ling.createParser(serializedGrammar);
-		if( parser == null ) {
-			System.out.println("Failed to create parser from " + serializedGrammar);
-			System.exit(1);
-		}
+
+//		if( parser == null ) {
+//			System.out.println("Failed to create parser from " + serializedGrammar);
+//			System.exit(1);
+//		}
 		tlp = new PennTreebankLanguagePack();
 		gsf = tlp.grammaticalStructureFactory();
 		
@@ -165,7 +200,7 @@ public class Main {
 			while( (line = reader.readLine()) != null ) {
 				if( !line.matches("^\\s*$") && !line.matches("^\\s*//.*$") ) {
 					// Remove trailing comments if they exist.
-					if( line.indexOf("//") > -1 )
+					if (line.contains("//"))
 						line = line.substring(0, line.indexOf("//"));
 					String name = line.trim();
 					sieveNames.add(name);
@@ -184,14 +219,11 @@ public class Main {
 
 	/**
 	 * Turns a string class name into an actual Sieve Instance of the class.
-	 * @param sieveClass
-	 * @return
 	 */
 	private Sieve createSieveInstance(String sieveClass) {
 		try {
 			Class<?> c = Class.forName("caevo.sieves." + sieveClass);
-			Sieve sieve = (Sieve)c.newInstance();
-			return sieve;
+			return (Sieve) c.newInstance();
 		} catch (InstantiationException e) {
 			System.out.println("ERROR: couldn't load sieve: " + sieveClass);
 			e.printStackTrace();
@@ -431,8 +463,8 @@ public class Main {
 			for( int tt = 0; tt < numtabs; tt++ ) System.out.print("\t");
 			System.out.printf("p=%.2f\t%.0f of %.0f\tr=%.2f from %d\tNon-VAGUE:\tp=%.2f\t%.0f of %.0f\n",
                               precision.getCount(key), correct, correct + numIncorrect.getCount(key),
-                              (correct / totalGoldLinks), (int)totalGoldLinks,
-                              precisionNonVague.getCount(key), correct, correct + numIncorrectNonVague.getCount(key));
+					(correct / totalGoldLinks), totalGoldLinks,
+					precisionNonVague.getCount(key), correct, correct + numIncorrectNonVague.getCount(key));
 		}
 		for( String key : sortedKeys ) {
 			System.out.println("**** " + key + "****");
@@ -472,10 +504,10 @@ public class Main {
 			TimeTimeLink ttLink = (TimeTimeLink)link;
 			Timex t1 = doc.getTimexByTid(ttLink.getId1());
 			Timex t2 = doc.getTimexByTid(ttLink.getId2());
-			
-			builder.append("Time-Time " + ttLink.getRelation() + "\t");
-			builder.append(t1.getTid() + ": " + t1.getValue() + " (" + t1.getText() + ")\t");
-			builder.append(t2.getTid() + ": " + t2.getValue() + " (" + t2.getText() + ")");
+
+			builder.append("Time-Time ").append(ttLink.getRelation()).append("\t");
+			builder.append(t1.getTid()).append(": ").append(t1.getValue()).append(" (").append(t1.getText()).append(")\t");
+			builder.append(t2.getTid()).append(": ").append(t2.getValue()).append(" (").append(t2.getText()).append(")");
 		} else {
 			// complex code because Timex and TextEvent don't share a common parent or common APIs
 			String id1 = link.getId1();
@@ -510,16 +542,14 @@ public class Main {
 	}
     
 	private void addProposedToCurrentList(String sieveName, List<TLink> proposed, List<TLink> current, Map<String,TLink> currentHash) {
-		Iterator<TLink> iter = proposed.iterator();
-		while (iter.hasNext()) {
-			TLink newlink = iter.next();
-			if( currentHash.containsKey(newlink.getId1()+newlink.getId2()) ) {
+		for (TLink newlink : proposed) {
+			if (currentHash.containsKey(newlink.getId1() + newlink.getId2())) {
 				System.out.println("MAIN WARNING: overwriting " + currentHash.get(newlink.getId1() + newlink.getId2()) + " with " + newlink);
 				current.remove(newlink);
 			}
 			current.add(newlink);
-			currentHash.put(newlink.getId1()+newlink.getId2(), newlink);
-			currentHash.put(newlink.getId2()+newlink.getId1(), newlink);
+			currentHash.put(newlink.getId1() + newlink.getId2(), newlink);
+			currentHash.put(newlink.getId2() + newlink.getId1(), newlink);
 			newlink.setOrigin(sieveName);
 		}
 	}
@@ -672,17 +702,16 @@ public class Main {
 
 		// If a directory: parse a directory of XML files.
 		if (isPath) {
-			String path = input;
-			if( Directory.isDirectory(path) ) {
-				for( String file : Directory.getFilesSorted(path) ) {
-					String subpath = path + File.separator + file;
+			if (Directory.isDirectory(input)) {
+				for (String file : Directory.getFilesSorted(input)) {
+					String subpath = input + File.separator + file;
 					SieveDocument doc = Tempeval3Parser.rawTextFileToParsed(subpath, parser, gsf);
 					docs.addDocument(doc);
 				}
 			}
 			// If a single file: parse it.
 			else {
-				SieveDocument doc = Tempeval3Parser.rawTextFileToParsed(path, parser, gsf);
+				SieveDocument doc = Tempeval3Parser.rawTextFileToParsed(input, parser, gsf);
 				docs.addDocument(doc);
 			}
 		} else {
@@ -694,11 +723,10 @@ public class Main {
 		markupAll(docs);
 		
 		if (isPath) {
-			String path = input;
 
 			// Output the InfoFile with the events in it.
-			String outpath = path + ".info.xml";
-			if( Directory.isDirectory(path) ) outpath = Directory.lastSubdirectory(path) + "-dir.info.xml";
+			String outpath = input + ".info.xml";
+			if (Directory.isDirectory(input)) outpath = Directory.lastSubdirectory(input) + "-dir.info.xml";
 			docs.writeToXML(outpath);
 			System.out.println("Created " + outpath);
 		}

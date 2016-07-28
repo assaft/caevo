@@ -1,13 +1,12 @@
 package caevo;
 
+import caevo.parser.ParserAdapter;
+import caevo.parser.StanfordParserAdapter;
+import junit.framework.TestCase;
+
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.PrintWriter;
-
-import caevo.SieveDocument;
-import caevo.TextEvent;
-import caevo.TextEventClassifier;
-import junit.framework.TestCase;
 
 /**
  * Run the event classifier on some raw text and make sure the expected number of events come out.
@@ -27,10 +26,12 @@ public class EventExtractionTest extends TestCase {
 		PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tempfile)));
 		writer.write(text);
 		writer.close();
-		
-    SieveDocument doc = classifier.markupRawTextToSieveDocument(tempfile);
-    assertNotNull(doc);
-    // Number of expected sentences.
+
+		ParserAdapter parser = new StanfordParserAdapter();
+		parser.init(Main.serializedGrammar);
+		SieveDocument doc = classifier.markupRawTextToSieveDocument(tempfile, parser);
+		assertNotNull(doc);
+		// Number of expected sentences.
     assertEquals("Number of sentences.", doc.getSentences().size(), 2);
     // Number of events per sentence.
     assertEquals("Number of events in 1st sentence.", 7, doc.getSentences().get(0).events().size());

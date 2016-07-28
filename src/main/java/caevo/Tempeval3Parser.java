@@ -1,48 +1,19 @@
 package caevo;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Text;
-
-import caevo.Timex.DocumentFunction;
-import caevo.tlink.EventEventLink;
-import caevo.tlink.EventTimeLink;
-import caevo.tlink.TLink;
-import caevo.tlink.TLinkClassifier;
-import caevo.tlink.TimeTimeLink;
-import caevo.util.Directory;
-import caevo.util.HandleParameters;
-import caevo.util.Ling;
-import caevo.util.Pair;
-import caevo.util.TimebankUtil;
-import caevo.util.TreeOperator;
-import caevo.util.Util;
+import caevo.parser.ParserAdapter;
+import caevo.parser.StanfordParserAdapter;
+import caevo.tlink.*;
+import caevo.util.*;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.HasWord;
-import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
 import edu.stanford.nlp.pipeline.AnnotationPipeline;
-import edu.stanford.nlp.trees.GrammaticalStructure;
-import edu.stanford.nlp.trees.GrammaticalStructureFactory;
-import edu.stanford.nlp.trees.LabeledScoredTreeFactory;
-import edu.stanford.nlp.trees.PennTreebankLanguagePack;
-import edu.stanford.nlp.trees.Tree;
-import edu.stanford.nlp.trees.TreeFactory;
-import edu.stanford.nlp.trees.TreebankLanguagePack;
-import edu.stanford.nlp.trees.TypedDependency;
+import edu.stanford.nlp.trees.*;
 import edu.stanford.nlp.util.StringUtils;
+import org.w3c.dom.*;
+
+import java.io.File;
+import java.util.*;
 
 /**
  * @author chambers
@@ -75,10 +46,11 @@ import edu.stanford.nlp.util.StringUtils;
  */
 public class Tempeval3Parser {
   String baseDir = "/home/nchamber/corpora/tempeval3/TBAQ-cleaned";
+  String parserClassName = StanfordParserAdapter.class.getName();
   String _serializedGrammar = "/englishPCFG.ser.gz";
   String outputFile = "tempeval3.xml";
   Properties props;
-  LexicalizedParser _parser;
+  ParserAdapter _parser;
   GrammaticalStructureFactory _gsf;
   LabeledScoredTreeFactory _tf;
   Map<String,Map<String,String>> idToAttributes;
@@ -111,7 +83,7 @@ public class Tempeval3Parser {
     
     // Init parsers.
 //    URL grammarURL = Tempeval3Parser.class.getResource(_serializedGrammar);
-    _parser = Ling.createParser(_serializedGrammar);
+    _parser = Main.initParser(parserClassName, _serializedGrammar);
     
     TreebankLanguagePack tlp = new PennTreebankLanguagePack();
     _gsf = tlp.grammaticalStructureFactory();
@@ -121,7 +93,7 @@ public class Tempeval3Parser {
     System.out.println("Output:\t\t\t" + outputFile);
     System.out.println("Read Events/Times:\t" + readEventsAndTimes);
     System.out.println("Label Timex:\t\t" + sutime);
-    System.out.println("Label Events:\t\t" + (eventmodelDir == null ? false : true));
+    System.out.println("Label Events:\t\t" + (eventmodelDir != null));
     System.out.println("");
     System.out.println("");
   }
@@ -132,6 +104,9 @@ public class Tempeval3Parser {
     if( params.hasFlag("-pure") ) {
     	readEventsAndTimes = false;
     	readTLinks = false;
+    }
+    if (params.hasFlag("-parser")) {
+      parserClassName = params.get("-parser");
     }
     if( params.hasFlag("-grammar") )
       _serializedGrammar = params.get("-grammar");
@@ -190,51 +165,47 @@ public class Tempeval3Parser {
     }
 
     // Don't do anything else to this info file that we just created.
-    if( noauto ) { }
-    // Automatically identify Events and TLinks using cross fold validation.
-    else if( _trainInfodocs != null )
-      autoExtractEventsAndTimesWithFolds(_trainInfodocs, _infodocs);
-    // Label tlink pairs that are already present in the info file.
-    else if( labelRelationsOnly )
-      labelRelationsOnly(_infodocs);
-    // Identify Events and TLinks using already trained classifiers on disk.
-    else
-      autoExtractEventsAndTimes(_infodocs);
-    
+    if (!noauto) {
+      // Automatically identify Events and TLinks using cross fold validation.
+      if (_trainInfodocs != null)
+        autoExtractEventsAndTimesWithFolds(_trainInfodocs, _infodocs);
+        // Label tlink pairs that are already present in the info file.
+      else if (labelRelationsOnly)
+        labelRelationsOnly(_infodocs);
+        // Identify Events and TLinks using already trained classifiers on disk.
+      else
+        autoExtractEventsAndTimes(_infodocs);
+    }
     System.out.println("Writing infofile " + outputFile);
     _infodocs.writeToXML(outputFile);
   }
   
   private void parseXMLDir(String base) {
-  	int numdocs = 0;
     for( String docname : Directory.getFilesSorted(base) ) {
 //    	if( doc.contains("wsj_0073") ) {
-    	if( true ) {
-    		docname = base + File.separator + docname;
-    		System.out.println("parsing " + docname);
+      docname = base + File.separator + docname;
+      System.out.println("parsing " + docname);
 
-    		// Pull out the event attributes from the MAKEINSTANCE elements first.
-    		eiidToID = new HashMap<String,String>();
-    		idToEiids = new HashMap<String,List<String>>();
-    		seenEventIDs = new HashSet<String>();
-    		extractEventAttributes(docname);
+      // Pull out the event attributes from the MAKEINSTANCE elements first.
+      eiidToID = new HashMap<String, String>();
+      idToEiids = new HashMap<String, List<String>>();
+      seenEventIDs = new HashSet<String>();
+      extractEventAttributes(docname);
 
-    		// Process the sentences, extract events/timexes, and parse.
-    		processXML(docname);
+      // Process the sentences, extract events/timexes, and parse.
+      processXML(docname);
 
-    		// Get the TLinks
-    		if( readTLinks ) {
-    			List<TLink> tlinks = getTLinks(docname);
-    			_infodocs.getDocument(docname).addTlinks(tlinks);
-    		}
+      // Get the TLinks
+      if (readTLinks) {
+        List<TLink> tlinks = getTLinks(docname);
+        _infodocs.getDocument(docname).addTlinks(tlinks);
+      }
 
-    		// Set the document creation time.
-    		Timex dct = getDocumentCreationTime(docname);
-    		if( dct != null ) _infodocs.getDocument(docname).addCreationTime(dct);
+      // Set the document creation time.
+      Timex dct = getDocumentCreationTime(docname);
+      if (dct != null) _infodocs.getDocument(docname).addCreationTime(dct);
 
 //    		if( numdocs % 2 == 1 ) break;
-    		numdocs++;
-    	}
     }
   }
   
@@ -338,7 +309,7 @@ public class Tempeval3Parser {
   }
   
   public static String buildStringFromStrings(List<String> tokens) {
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     if( tokens != null ) {
 	int xx = 0;
 	for( String token : tokens ) {
@@ -350,7 +321,7 @@ public class Tempeval3Parser {
   }
   
   public static String buildString(List<HasWord> sentence, int starti, int endi) {
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     for( int xx = starti; xx < endi; xx++ ) {
       if( xx > starti ) buf.append(' ');
       buf.append(sentence.get(xx).word());
@@ -372,7 +343,7 @@ public class Tempeval3Parser {
   }
   
   /**
-   * @returns A pair based on two stopping conditions:
+   * returns A pair based on two stopping conditions:
    *          (1) index of the token we stopped at in the List, and false.
    *          (2) index of the character in rawtext where the tokens ran out, and true.
    */
@@ -439,7 +410,7 @@ public class Tempeval3Parser {
   } 
   
   /**
-   * @returns A pair based on two stopping conditions:
+   * returns A pair based on two stopping conditions:
    *          (1) index of the token we stopped at in the List, and false.
    *          (2) index of the character in rawtext where the tokens ran out, and true.
 
@@ -560,7 +531,7 @@ public class Tempeval3Parser {
   
   private void intrepetXMLText(Element textel, String docname) {
     NodeList children = textel.getChildNodes();
-    int childi = 0, sid = 0, rawstart = 0, tid = 1;
+    int childi = 0, sid = 0, rawstart = 0;
 
     // Get the raw text, and split on multiple newlines, or just leave as is for Stanford splitter.
     String allraw = textel.getTextContent();
@@ -604,9 +575,7 @@ public class Tempeval3Parser {
           String str = ((Text)child).getData();
           
           // Some text nodes are just white space (between two Elements in a sentence).
-          if( str.matches("^\\s*$") ) { }
-          
-          else {
+          if (!str.matches("^\\s*$")) {
             //          if( rawstart > 0 ) str = str.substring(rawstart);
             //          rawstart = 0;
           	if( debug ) System.out.println("str=" + str + " and wordi=" + wordi);
@@ -820,13 +789,13 @@ public class Tempeval3Parser {
    * this file is unlabeled for events. This looks for <TEXT> and <DCT> elements to load
    * the SieveDocument object.
    */
-  public static SieveDocument rawXMLtoSieveDocument(String xmlFilePath, LexicalizedParser parser, GrammaticalStructureFactory gsf) {
+  public static SieveDocument rawXMLtoSieveDocument(String xmlFilePath, ParserAdapter parser, GrammaticalStructureFactory gsf) {
 
     // PARSE the input XML document of events
     Document doc = getXMLDocFromPath(xmlFilePath);
 
     // Grab the TEXT element.
-    Element textElement = null;
+    Element textElement;
     String justtext = null;
     if( doc.getElementsByTagName("TEXT") != null ) {
     	textElement = (Element)doc.getElementsByTagName("TEXT").item(0);
@@ -837,7 +806,7 @@ public class Tempeval3Parser {
     SieveDocument sdoc = rawTextToParsed((new File(xmlFilePath)).getName(), justtext, parser, gsf);
     
     // Grab the DCT element.
-    Element dctElement = null;
+    Element dctElement;
     if( doc.getElementsByTagName("DCT") != null ) {
     	dctElement = (Element)doc.getElementsByTagName("DCT").item(0);
     	NodeList timexes = dctElement.getChildNodes();
@@ -865,8 +834,10 @@ public class Tempeval3Parser {
     // Grab the TIMEX3 element in the document representing the document's creation time.
     Document doc = getXMLDocFromPath(docname);
     NodeList dcts = doc.getElementsByTagName("DCT");
-    if( dcts == null )
+    if (dcts == null || dcts.getLength() == 0) {
       System.err.println("ERROR: couldn't find DCT element in file: " + docname);
+      return null;
+    }
     Node dctNode = dcts.item(0);
     NodeList children = dctNode.getChildNodes();
 
@@ -931,9 +902,7 @@ public class Tempeval3Parser {
     String time         = link.getAttribute("timeID");
     String relType      = link.getAttribute("relType");
 //    String linkID       = link.getAttribute("lid");
-    String eiid = event;
-    String relatedEiid = relatedEvent;
-    
+
     if( debug ) System.out.println(event + "\t" + relatedEvent + "\t" + relatedTime + "\t" + time + "\t" + relType);
 
     // Map EIID to ID for the events. 
@@ -961,20 +930,13 @@ public class Tempeval3Parser {
     
     // Create the tlink object.
     if( event != null && event.length() > 0 && relatedEvent != null && relatedEvent.length() > 0 ) {
-    	TLink thelink = new EventEventLink(event, relatedEvent, TLink.Type.valueOf(relType));
-//    	thelink.eiid1 = eiid;
-//    	thelink.eiid2 = relatedEiid;
-    	return thelink;
+      return new EventEventLink(event, relatedEvent, TLink.Type.valueOf(relType));
     }
     if( event != null && event.length() > 0 && relatedTime != null && relatedTime.length() > 0 ) {
-    	TLink thelink = new EventTimeLink(event, relatedTime, TLink.Type.valueOf(relType));
-//    	thelink.eiid1 = eiid;
-    	return thelink;
+      return new EventTimeLink(event, relatedTime, TLink.Type.valueOf(relType));
     }
     if( time != null && time.length() > 0 && relatedEvent != null && relatedEvent.length() > 0 ) {
-    	TLink thelink = new EventTimeLink(time, relatedEvent, TLink.Type.valueOf(relType));
-//    	thelink.eiid2 = relatedEiid;
-    	return thelink;
+      return new EventTimeLink(time, relatedEvent, TLink.Type.valueOf(relType));
     }
     if( time != null && time.length() > 0 && relatedTime != null && relatedTime.length() > 0 )
       return new TimeTimeLink(time, relatedTime, TLink.Type.valueOf(relType));
@@ -1031,9 +993,6 @@ public class Tempeval3Parser {
    * Retrieve all of the timexes in a single sentence (sid index) in a document (docname).
    * This opens the raw TempEval-2 file and looks for the lines with that document and sentence.
    * @param docname The document to retrieve from.
-   * @param sid The sentence index to retrieve events.
-   * @param tree The parse tree of that sentence.
-   * @return All events as TextEvent objects.
    */
   private void extractEventAttributes(String docname) {
     idToAttributes = new HashMap<String,Map<String,String>>();
@@ -1063,7 +1022,7 @@ public class Tempeval3Parser {
   }
 
   private String listToString(List<HasWord> words) {
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     boolean first = true;
     for( HasWord word : words ) {
       if( !first ) buf.append(", ");
@@ -1232,7 +1191,6 @@ public class Tempeval3Parser {
   private static SieveDocument lexParsedToDeps(String filepath, List<String> stringParses, TreeFactory tf, GrammaticalStructureFactory gsf) {
   	SieveDocument doc = new SieveDocument(filepath);
 
-  	int sid = 0;
   	for( String strParse : stringParses ) {
   		//      System.out.println("* " + strParse);
 
@@ -1257,13 +1215,12 @@ public class Tempeval3Parser {
   			cls.get(cls.size()-1).set(CoreAnnotations.AfterAnnotation.class, "\n\n"); // new lines after each sentence
 
   		doc.addSentence(buildStringFromStrings(tokens), cls, strParse, strDeps, null, null);
-  		sid++;
   	}
 
   	return doc; 
   }
-  
-  public static SieveDocument rawTextFileToParsed(String filepath, LexicalizedParser parser, GrammaticalStructureFactory gsf) {
+
+  public static SieveDocument rawTextFileToParsed(String filepath, ParserAdapter parser, GrammaticalStructureFactory gsf) {
     List<String> lines = Util.readLinesFromFile(filepath);
     String bigone = lines.get(0);
     for( int xx = 1; xx < lines.size(); xx++ ) bigone += "\n" + lines.get(xx);
@@ -1271,8 +1228,8 @@ public class Tempeval3Parser {
  
     return rawTextToParsed(filepath, bigone, parser, gsf);
   }
-  
-  public static SieveDocument rawTextToParsed(String filename, String text, LexicalizedParser parser, GrammaticalStructureFactory gsf) {
+
+  public static SieveDocument rawTextToParsed(String filename, String text, ParserAdapter parser, GrammaticalStructureFactory gsf) {
     List<List<HasWord>> sentencesNormInvertible = new ArrayList<List<HasWord>>();
     sentencesNormInvertible.addAll(Ling.getSentencesFromTextNormInvertible(text));
     System.out.println("Got " + sentencesNormInvertible.size() + " sentences.");
@@ -1286,14 +1243,11 @@ public class Tempeval3Parser {
     
     SieveDocument sdoc = new SieveDocument((new File(filename)).getName());
 
-    int sid = 0;
     for( List<HasWord> sent : sentencesNormInvertible ) {
-//    	System.out.println("* " + sent);
       Pair<String,String> parseDep = parseDep(sent, parser, gsf);
       List<CoreLabel> cls = new ArrayList<CoreLabel>();
       for( HasWord word : sent ) cls.add((CoreLabel)word);
       sdoc.addSentence(buildString(sent, 0, sent.size()), cls, parseDep.first(), parseDep.second(), null, null);
-      sid++;
     }
     
     return sdoc; 
@@ -1308,7 +1262,7 @@ public class Tempeval3Parser {
    * @param sentence The list of words.
    * @return A pair: (1) phrase tree, (2) dependency graph.
    */
-  public static Pair<String,String> parseDep(List<HasWord> sentence, LexicalizedParser parser, GrammaticalStructureFactory gsf) {
+  public static Pair<String, String> parseDep(List<HasWord> sentence, ParserAdapter parser, GrammaticalStructureFactory gsf) {
     // PARSE the sentence
     if( sentence != null ) {
       Tree ansTree = parser.parseTree(sentence);
@@ -1438,30 +1392,26 @@ public class Tempeval3Parser {
 
     return pipeline;
   }
-   */  
-  
+
   private String generateInvertibleString(List<HasWord> tokens) {
-    StringBuffer buf = new StringBuffer();
+   StringBuilder sb = new StringBuilder();
     for( HasWord token : tokens ) {
       CoreLabel cl = (CoreLabel)token;
-      buf.append('"');
-      buf.append(cl.getString(CoreAnnotations.BeforeAnnotation.class));
-      buf.append("\" \"");
-      buf.append(cl.getString(CoreAnnotations.OriginalTextAnnotation.class));
-      buf.append("\" \"");
-      buf.append(cl.getString(CoreAnnotations.AfterAnnotation.class));
-      buf.append("\"\n");
+   sb.append('"');
+   sb.append(cl.getString(CoreAnnotations.BeforeAnnotation.class));
+   sb.append("\" \"");
+   sb.append(cl.getString(CoreAnnotations.OriginalTextAnnotation.class));
+   sb.append("\" \"");
+   sb.append(cl.getString(CoreAnnotations.AfterAnnotation.class));
+   sb.append("\"\n");
     }
-    return buf.toString();
+   return sb.toString();
   }
-  
-  
-  /**
-   * @param args
    */
+
   public static void main(String[] args) {
-    if( args.length < 1 ) 
-      System.out.println("Tempeval3Parser [-output <path>] [-grammar <parser-grammar>] [-timex] -input <tempeval3-TBAQ-dir>");
+    if (args.length < 1)
+      System.out.println("Tempeval3Parser [-output <path>] [-parser <parser-adapter-class>] [-grammar <parser-grammar>] [-timex] -input <tempeval3-TBAQ-dir>");
     else {
       Tempeval3Parser tp3 = new Tempeval3Parser(args);
       tp3.parse();
