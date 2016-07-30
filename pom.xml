@@ -44,7 +44,11 @@
 		  <version>4.8.1</version>
 		  <scope>test</scope>
 		</dependency>
-	</dependencies>
+		<dependency>
+			<groupId>org.apache.opennlp</groupId>
+			<artifactId>opennlp-uima</artifactId>
+			<version>1.6.0</version>
+		</dependency>	</dependencies>
 	<build>
 	<plugins>
 		<plugin>

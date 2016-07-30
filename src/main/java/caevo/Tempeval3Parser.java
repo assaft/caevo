@@ -84,9 +84,8 @@ public class Tempeval3Parser {
     // Init parsers.
 //    URL grammarURL = Tempeval3Parser.class.getResource(_serializedGrammar);
     _parser = Main.initParser(parserClassName, _serializedGrammar);
-    
-    TreebankLanguagePack tlp = new PennTreebankLanguagePack();
-    _gsf = tlp.grammaticalStructureFactory();
+
+    _gsf = new PennTreebankLanguagePack().grammaticalStructureFactory();
     _tf = new LabeledScoredTreeFactory();
     
     System.out.println("Input:\t\t\t" + baseDir);
@@ -1313,8 +1312,8 @@ public class Tempeval3Parser {
     	try {
     		GrammaticalStructure gs = gsf.newGrammaticalStructure(lexTree);
     		if( gs != null ) {
-    			List<TypedDependency> localdeps = gs.typedDependenciesCCprocessed(true);
-    			if( localdeps != null )
+              List<TypedDependency> localdeps = gs.typedDependenciesCCprocessed(GrammaticalStructure.Extras.MAXIMAL);
+              if( localdeps != null )
     				for( TypedDependency dep : localdeps )
     					depString += dep + "\n";
     		}

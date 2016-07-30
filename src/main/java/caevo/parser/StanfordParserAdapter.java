@@ -7,7 +7,7 @@ import edu.stanford.nlp.trees.Tree;
 import java.util.List;
 
 /**
- * This class implements the adapter for the Stanford parser.
+ * This class implements the (trivial) adapter for the Stanford parser.
  *
  * @author ymishory
  */

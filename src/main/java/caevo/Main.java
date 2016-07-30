@@ -10,7 +10,6 @@ import edu.stanford.nlp.stats.ClassicCounter;
 import edu.stanford.nlp.stats.Counter;
 import edu.stanford.nlp.trees.GrammaticalStructureFactory;
 import edu.stanford.nlp.trees.PennTreebankLanguagePack;
-import edu.stanford.nlp.trees.TreebankLanguagePack;
 import edu.stanford.nlp.util.StringUtils;
 
 import java.io.BufferedReader;
@@ -61,7 +60,6 @@ public class Main {
 
 	// parser
 	ParserAdapter parser;
-	TreebankLanguagePack tlp;
 	GrammaticalStructureFactory gsf;
 	
 	// Which dataset do we load?
@@ -174,15 +172,8 @@ public class Main {
 		// Load the sieve list.
 		sieveClasses = loadSieveList();
 
-//		if( parser == null ) {
-//			System.out.println("Failed to create parser from " + serializedGrammar);
-//			System.exit(1);
-//		}
-		tlp = new PennTreebankLanguagePack();
-		gsf = tlp.grammaticalStructureFactory();
-		
 		timexClassifier = new TimexClassifier();
-		
+		gsf = new PennTreebankLanguagePack().grammaticalStructureFactory();
 		eventClassifier = new TextEventClassifier(wordnet);
 		eventClassifier.loadClassifiers();
 	}
