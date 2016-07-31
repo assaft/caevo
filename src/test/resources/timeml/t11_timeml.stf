@@ -1,0 +1,5 @@
+ei1,afraid,state
+ei2,attack,occurrence
+t1,PT2H
+l1,ei1,t1,DURING
+l2,ei1,ei2,AFTER

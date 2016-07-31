@@ -1,0 +1,2 @@
+Originally TimeML had t3=2002-07-23 which we corrected as we assume that it is a typo. 
+TimeML has a link: l1,t1,t2,AFTER, which we do not include in the gold.

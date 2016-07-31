@@ -1,6 +1,0 @@
-ei1,attack
-ei2,sent
-t1,P2M
-l1,ei1,t1,AFTER
-l2,ei2,t1,BEFORE
-l3,ei1,ei2,AFTER

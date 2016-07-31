@@ -41,7 +41,7 @@
 		<dependency>
 		  <groupId>junit</groupId>
 		  <artifactId>junit</artifactId>
-		  <version>4.8.1</version>
+		  <version>4.12</version>
 		  <scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -84,6 +84,27 @@
 				</execution>
 			</executions>
 		</plugin>		
+		<plugin>
+			<groupId>org.codehaus.mojo</groupId>
+			<artifactId>exec-maven-plugin</artifactId>
+			<version>1.5.0</version>
+			<executions>
+				<execution>
+					<configuration>
+						<executable>python</executable>
+						<workingDirectory>target/test-classes/timeml</workingDirectory>
+						<arguments>
+							<argument>../../../src/main/scripts/create_timeml_report.py</argument>
+						</arguments>
+					</configuration>
+					<id>python-build</id>
+					<phase>test</phase>
+					<goals>
+						<goal>exec</goal>
+					</goals>
+				</execution>
+			</executions>
+		</plugin>
 		
 <!--
 		<plugin>

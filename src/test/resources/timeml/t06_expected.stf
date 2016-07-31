@@ -1,0 +1,10 @@
+ei1,came
+ei2,got
+t0,2002-07-10
+t1,P5D
+l1,ei1,t1,BEFORE
+l2,ei2,t1,AFTER
+l3,ei1,ei2,BEFORE
+l4,ei1,t0,BEFORE
+l5,ei2,t0,IS_INCLUDED
+l6,t1,t0,VAGUE

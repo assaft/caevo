@@ -1,6 +1,0 @@
-ei1,left
-ei2,attack
-t1,P2D
-l1,ei1,t1,BEFORE
-l2,ei2,t1,AFTER
-l3,ei1,ei2,BEFORE

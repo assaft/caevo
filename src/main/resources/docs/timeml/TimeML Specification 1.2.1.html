@@ -1,0 +1,1242 @@
+
+<!-- saved from url=(0153)http://webcache.googleusercontent.com/search?q=cache:J6adE30vDDcJ:www.timeml.org/site/publications/timeMLdocs/timeml_1.2.1.html+&cd=1&hl=en&ct=clnk&gl=il -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--<base href="http://www.timeml.org/site/publications/timeMLdocs/timeml_1.2.1.html">--><base href="."><style type="text/css">body { margin-left:0;margin-right:0;margin-top:0; }#google-cache-hdr {background:#f5f5f5 !important;font:13px arial,sans-serif !important;text-align:left !important;color:#202020 !important;border:0 !important;margin:0 !important;border-bottom:1px solid #cecece !important;line-height:16px !important ;padding:16px 28px 24px 28px !important;}#google-cache-hdr * {display:inline !important;font:inherit !important;text-align:inherit !important;color:inherit !important;line-height:inherit !important;background:none !important;border:0 !important;margin:0 !important;padding:0 !important;letter-spacing:0 !important;}#google-cache-hdr a {text-decoration:none !important;color:#1a0dab !important;}#google-cache-hdr a:hover { text-decoration:underline !important; }#google-cache-hdr a:visited { color:#609 !important; }#google-cache-hdr div { display:block !important;margin-top:4px !important; }#google-cache-hdr b {font-weight:bold !important;display:inline-block !important;direction:ltr !important;}</style><style type="text/css"></style></head><body><div id="google-cache-hdr" dir="ltr"><div>This is Google's cache of <a href="http://www.timeml.org/site/publications/timeMLdocs/timeml_1.2.1.html" dir="ltr">http://www.timeml.org/site/publications/timeMLdocs/timeml_1.2.1.html</a>. It is a snapshot of the page as it appeared on 25 Jan 2016 04:09:47 GMT. </div><div>The <a href="http://www.timeml.org/site/publications/timeMLdocs/timeml_1.2.1.html" dir="ltr">current page</a> could have changed in the meantime. <a href="http://support.google.com/websearch/bin/answer.py?hl=en&amp;p=cached&amp;answer=1687222">Learn more</a></div><div></div><div><span style="display:inline-block !important;margin-top:8px !important;margin-right:104px !important;white-space:nowrap !important;"><span style="margin-right:28px !important;"><span style="font-weight:bold !important;">Full version</span></span><span style="margin-right:28px !important;"><a href="http://webcache.googleusercontent.com/search?q=cache:J6adE30vDDcJ:www.timeml.org/site/publications/timeMLdocs/timeml_1.2.1.html&amp;num=1&amp;hl=en&amp;gl=il&amp;strip=1&amp;vwsrc=0">Text-only version</a></span><span style="margin-right:28px !important;"><a href="http://webcache.googleusercontent.com/search?q=cache:J6adE30vDDcJ:www.timeml.org/site/publications/timeMLdocs/timeml_1.2.1.html&amp;num=1&amp;hl=en&amp;gl=il&amp;strip=0&amp;vwsrc=1">View source</a></span></span><span style="display:inline-block !important;margin-top:8px !important;color:#717171 !important;">Tip: To quickly find your search term on this page, press <b>Ctrl+F</b> or <b>⌘-F</b> (Mac) and use the find bar.</span></div></div><div style="position:relative;">
+
+
+<meta name="Title" content="TimeML Specification 1.2.1">
+
+<title>TimeML Specification 1.2.1</title>
+<style>
+<!--
+body {
+	background-color: #FFFFFF;
+}
+h1 {
+	background-color: #FFFFCC;
+	padding: 5px;
+}
+h2 {
+	background-color: #FFFFCC;
+	padding: 5px;
+	margin-top: 10px;
+}
+h3 {
+	background-color: #FFFFCC;
+	padding: 5px;
+	margin-top: 10px;
+}
+.dtd {
+	background-color: #FFFFCC;
+	padding: 10px;
+}
+-->
+</style>
+
+
+<h1 align="left">TimeML 1.2.1<br>
+  A Formal Specification Language for Events and Temporal
+Expressions</h1>
+<h4 align="left">October, 2005</h4>
+<p><b>TimeML Working Group:</b> Branimir Boguraev, Jose Castaño,
+  Rob Gaizauskas, Bob Ingria, Graham Katz, Bob Knippen, Jessica Littman, Inderjeet
+  Mani, James Pustejovsky, Anna Rumshisky, Antonio Sanfilippo, Andrew See, Andrea Setzer, Roser
+  Saurí, Amber Stubbs, Beth Sundheim, Svetlana Symonenko, Marc Verhagen. </p>
+<h3>Table of Contents</h3>
+<table border="0" cellspacing="0" cellpadding="2">
+  <tbody><tr>
+    <td width="12">1</td>
+    <td width="1">&nbsp;</td>
+    <td colspan="2"><a href="http://www.timeml.org/site/publications/timeMLdocs/timeml_1.2.1.html#introduction">Introduction</a></td>
+  </tr>
+  <tr>
+    <td>2.</td>
+    <td>&nbsp;</td>
+    <td colspan="2"><a href="http://www.timeml.org/site/publications/timeMLdocs/timeml_1.2.1.html#timemltags">TimeML Tags</a></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td width="20">2.1</td>
+    <td width="282"><a href="http://www.timeml.org/site/publications/timeMLdocs/timeml_1.2.1.html#event">&lt;EVENT&gt;</a></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>2.2</td>
+    <td><a href="http://www.timeml.org/site/publications/timeMLdocs/timeml_1.2.1.html#makeinstance">&lt;MAKEINSTANCE&gt;</a></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>2.3</td>
+    <td><a href="http://www.timeml.org/site/publications/timeMLdocs/timeml_1.2.1.html#timex3">&lt;TIMEX3&gt;</a></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>2.4</td>
+    <td><a href="http://www.timeml.org/site/publications/timeMLdocs/timeml_1.2.1.html#signal">&lt;SIGNAL&gt;</a></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>2.5</td>
+    <td><a href="http://www.timeml.org/site/publications/timeMLdocs/timeml_1.2.1.html#tlink">&lt;TLINK&gt;</a></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>2.6</td>
+    <td><a href="http://www.timeml.org/site/publications/timeMLdocs/timeml_1.2.1.html#slink">&lt;SLINK&gt;</a></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>2.7</td>
+    <td><a href="http://www.timeml.org/site/publications/timeMLdocs/timeml_1.2.1.html#alink">&lt;ALINK&gt;</a></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>2.8</td>
+    <td>&lt;<a href="http://www.timeml.org/site/publications/timeMLdocs/timeml_1.2.1.html#confidence">CONFIDENCE</a>&gt;</td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>2.9</td>
+    <td><p><a href="http://www.timeml.org/site/publications/timeMLdocs/timeml_1.2.1.html#timeml">&lt;TimeML&gt;</a></p>
+    </td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>&nbsp;</td>
+    <td colspan="2"><a href="http://www.timeml.org/site/publications/timeMLdocs/timeml_1.2.1.html#changes">Changes from version 1.2 to 1.2.1</a></td>
+  </tr>
+</tbody></table>
+<p><a name="introduction"></a></p>
+
+<h2>1 &nbsp; Introduction</h2>
+
+<p>This document represents the current specification of TimeML. This revision
+  specifies the syntax of TimeML, i.e. essentially its tags and their attributes,
+  with examples illustrating their basic use. Since the pure syntax of TimeML
+  will often leave open how a particular phenomenon should be annotated (e.g.
+  should modals in English be marked up as SIGNALs or EVENTs), this document
+  leaves a number of issues underspecified. Fuller discussion of the conventions
+  by which TimeML should be applied can be found in the accompanying annotation
+  guidelines (Pustejovsky, et al. (2002)). </p>
+<p>The document begins with the "leaf nodes" of TimeML: the tags that
+  include texts (in most cases) that describe the basic temporal elements within
+  a document. The next section introduces SIGNAL, the tag that wraps expressions
+  that specify how temporal elements should be related. The third section deals
+  with links, empty tags that explicitly annotate the temporal relations either
+  marked by signals or indicated purely syntactically, The next section deals
+  with miscellaneous other tags. The last section deals with open questions. </p>
+<h4><b>Naming Conventions</b></h4>
+<p>Inasmuch as XML is case-sensitive, it is necessary for TimeML to specify
+  exactly the case of all its elements. This document follows the convention
+  of indicating tag names and attribute values in all upper case (e.g. EVENT,
+  PROGRESSIVE) and attribute names in lower or mixed case (e.g. tense, relatedToTime).
+  Since attribute values are typically atomic (one-word) while attribute names
+  often consist of multiple words, this convention would seem to maximize readability
+  of the annotation. (Multi-word attribute values use the underscore character
+  to separate their component parts.) </p>
+<p>This document also follows the attribute naming convention introduced in
+  Setzer (2001). Attributes that range over values of XML datatype ID---a unique
+  index---are short, consisting of one or two characters indicating the name
+  of the element, followed by 'id' (e.g. tid, eiid). Attributes that range over
+  values of XML datatype IDREF---references to IDs---typically consist of the
+  name of the element indexed, followed by 'ID' (e.g. eventID) or a descriptive
+  name (e.g. relatedToTime). </p>
+<p>The values of the various ID attributes are specified as beginning with one
+  or two characters, followed by an integer. This scheme is mandated by the syntax
+  of XML. While attribute values of type ID can consist of any sequence of letters,
+  digits, and the hyphen, underscore, and period characters, they must begin
+  with either an underscore or a letter. Therefore <tt>"e23"</tt> is
+  a valid XML ID; but <tt>"23"</tt> is not. This naming convention
+  also helps make the examples a bit more readable, especially in the case of
+  link tags, which can contain multiple IDREFs of different kinds. </p>
+<p>Finally, in the descriptions of the values of attributes, where XML DTD and
+  XML schema definitions would differ, the schema definition is indicated between
+  {}. </p>
+<h4>The Examples</h4>
+<p>Though this document describes the full TimeML language, many of the example
+  annotations provided show the result of annotation only through the output
+  of initial automatic tagging combined with human annotation/editing, but do
+  not include elements (e.g. attributes and/or attribute values) that may be
+  introduced by later processing components (e.g. the closure tool). In particular,
+  TIMEX3 tags that are treated as temporal functions typically appear in the
+  examples in an underspecified form. However, those elements that do appear
+  are sufficient for the output of manual annotation. </p>
+<p>Finally, note that all examples in this document have been validated against
+  a TimeML DTD corresponding to the BNF given here, using the oXygen XML editor,
+  version 1.1. </p>
+
+<p><a name="timemltags"></a></p>
+<h2>2 &nbsp; TimeML Tags </h2>
+
+<p><a name="event"></a></p>
+<h3>2.1 &nbsp; &lt;EVENT&gt;</h3>
+
+<p>The EVENT tag is used to annotate those elements in a text that mark the
+  semantic events described by it. Syntactically, EVENTs are typically verbs,
+  although event nominals, such as "crash" in "...killed by the
+  crash", will also be annotated as EVENTs. </p>
+<p>The EVENT tag is also used to annotate a subset of the states in a document.
+  This subset of states includes those that are either transient or explicitly
+  marked as participating in a temporal relation. See the TimeML annotation guidelines
+  for more details. </p>
+
+<pre class="dtd">attributes ::= eid class [comment]
+
+eid ::= ID
+{eid ::= EventID
+EventID ::= e&lt;integer&gt;}
+class ::= 'OCCURRENCE' | 'PERCEPTION' | 'REPORTING' | 'ASPECTUAL' |
+          'STATE' | 'I_STATE' | 'I_ACTION'
+comment ::= CDATA</pre>
+
+Note: The <tt>comment</tt> attribute is a part of all the TimeML tags, and exists for annotators
+to add clarifications and other observations about the text being marked.
+
+<p><a name="makeinstance"></a></p>
+<h3>2.1 &nbsp; &lt;MAKEINSTANCE&gt;</h3>
+
+<p>MAKEINSTANCE is a realization link; it indicates different instances of a
+  given event. Since different instances can have different attribute values,
+  the tense and aspect of the event are represented within this tag. In addition,
+  if the instance is modified by a negation or modal operator, this is represented
+  in the appropriate attributes within this tag.&nbsp; One can create as many
+  instances as are motivated by the text. All relations indicated by the other
+  links are stated over these instances. Because of this, every EVENT introduces
+  at least one corresponding MAKEINSTANCE. </p>
+
+<pre class="dtd">attributes ::= eiid eventID signalID pos tense aspect [cardinality] polarity
+                [modality] [comment]
+
+eiid ::= ID
+{eiid ::= EventInstanceID
+EventInstanceID ::= ei&lt;integer&gt;}
+eventID ::= IDREF
+{eventID ::= EventID}
+signalID ::= IDREF
+{signalID ::= SignalID}
+pos ::= 'ADJECTIVE' | 'NOUN' | 'VERB' | 'PREPOSITION' | 'OTHER'
+tense ::= 'FUTURE' | 'INFINITIVE' | 'PAST' | 'PASTPART' | 'PRESENT' | 'PRESPART' | 'NONE'
+aspect ::= 'PROGRESSIVE' | 'PERFECTIVE' | 'PERFECTIVE_PROGRESSIVE' | 'NONE'
+cardinality ::= CDATA
+polarity ::= 'NEG' | 'POS' {default, if absent, is 'POS'}
+modality ::= CDATA
+comment ::= CDATA
+</pre>
+
+<p>A MAKEINSTANCE can be considered to be a functional object that takes an <tt>EventID</tt> as
+  its input and produces an <tt>EventInstanceID</tt> as its output. </p>
+<p>We expect that the <tt>tense</tt> and <tt>aspect</tt> attributes will have
+  their values filled in by a pre-processing program, according to the following
+  paradigm: </p>
+
+<h4>Active Voice</h4>
+
+<blockquote>
+<table border="0" cellpadding="4" cellspacing="0">
+  <tbody><tr>
+    <td width="200"><b>verb group</b></td>
+    <td width="100"><b>tense</b></td>
+    <td><b>aspect</b></td>
+  </tr>
+  <tr>
+    <td>teaches</td>
+    <td><tt>PRESENT</tt></td>
+    <td><tt>NONE</tt></td>
+  </tr>
+  <tr>
+    <td>is teaching</td>
+    <td><tt>PRESENT</tt></td>
+    <td><tt>PROGRESSIVE</tt></td>
+  </tr>
+  <tr>
+    <td>has taught</td>
+    <td><tt>PRESENT</tt></td>
+    <td><tt>PERFECTIVE</tt></td>
+  </tr>
+  <tr>
+    <td>has been teaching</td>
+    <td><tt>PRESENT</tt></td>
+    <td><tt>PERFECTIVE_PROGRESSIVE</tt></td>
+  </tr>
+  <tr>
+    <td>taught</td>
+    <td><tt>PAST</tt></td>
+    <td><tt>NONE</tt></td>
+  </tr>
+  <tr>
+    <td>was teaching</td>
+    <td><tt>PAST</tt></td>
+    <td><tt>PROGRESSIVE</tt></td>
+  </tr>
+  <tr>
+    <td>had taught</td>
+    <td><tt>PAST</tt></td>
+    <td><tt>PERFECTIVE</tt></td>
+  </tr>
+  <tr>
+    <td>had been teaching</td>
+    <td><tt>PAST</tt></td>
+    <td><tt>PERFECTIVE_PROGRESSIVE</tt></td>
+  </tr>
+  <tr>
+    <td>will teach</td>
+    <td><tt>FUTURE</tt></td>
+    <td><tt>NONE</tt></td>
+  </tr>
+  <tr>
+    <td>will be teaching</td>
+    <td><tt>FUTURE</tt></td>
+    <td><tt>PROGRESSIVE</tt></td>
+  </tr>
+  <tr>
+    <td>will have taught</td>
+    <td><tt>FUTURE</tt></td>
+    <td><tt>PERFECTIVE</tt></td>
+  </tr>
+  <tr>
+    <td>will have been teaching</td>
+    <td><tt>FUTURE</tt></td>
+    <td><tt>PERFECTIVE_PROGRESSIVE</tt></td>
+  </tr>
+</tbody></table>
+</blockquote>
+
+<h4>Passive Voice</h4>
+
+<blockquote>
+  <table border="0" cellpadding="4" cellspacing="0">
+  <tbody><tr>
+    <td width="200"><b>verb group</b></td>
+    <td width="100"><b>tense</b></td>
+    <td><b>aspect</b></td>
+  </tr>
+  <tr>
+    <td>is taught</td>
+    <td><tt>PRESENT</tt></td>
+    <td><tt>NONE</tt></td>
+  </tr>
+  <tr>
+    <td>is being taught</td>
+    <td><tt>PRESENT</tt></td>
+    <td><tt>PROGRESSIVE</tt></td>
+  </tr>
+  <tr>
+    <td>has been taught</td>
+    <td><tt>PRESENT</tt></td>
+    <td><tt>PERFECTIVE</tt></td>
+  </tr>
+  <tr>
+    <td>has been being taught (?)</td>
+    <td><tt>PRESENT</tt></td>
+    <td><tt>PERFECTIVE_PROGRESSIVE</tt></td>
+  </tr>
+  <tr>
+    <td>was taught</td>
+    <td><tt>PAST</tt></td>
+    <td><tt>NONE</tt></td>
+  </tr>
+  <tr>
+    <td>was being taught</td>
+    <td><tt>PAST</tt></td>
+    <td><tt>PROGRESSIVE</tt></td>
+  </tr>
+  <tr>
+    <td>had been taught </td>
+    <td><tt>PAST</tt></td>
+    <td><tt>PERFECTIVE</tt></td>
+  </tr>
+  <tr>
+    <td>had been being taught (?) </td>
+    <td><tt>PAST</tt></td>
+    <td><tt>PERFECTIVE_PROGRESSIVE</tt></td>
+  </tr>
+  <tr>
+    <td>will be taught</td>
+    <td><tt>FUTURE</tt></td>
+    <td><tt>NONE</tt></td>
+  </tr>
+  <tr>
+    <td>will be being taught (?)</td>
+    <td><tt>FUTURE</tt></td>
+    <td><tt>PROGRESSIVE</tt></td>
+  </tr>
+  <tr>
+    <td>will have been taught</td>
+    <td><tt>FUTURE</tt></td>
+    <td><tt>PERFECTIVE</tt></td>
+  </tr>
+  <tr>
+    <td>will have been being taught (?)</td>
+    <td><tt>FUTURE</tt></td>
+    <td><tt>PERFECTIVE_PROGRESSIVE</tt></td>
+  </tr>
+</tbody></table>
+<p>Note: Forms marked with (?) do not seem fully acceptable. They are included
+to show the full logical paradigm.</p>
+</blockquote>
+
+<p>The <tt>pos</tt> ('part of speech') attribute captures distinctions among the grammatical
+  categories of phrases which are marked as events, as not all such phrases contain finite
+  verbs.&nbsp;</p>
+<p><tt>signalID</tt> indicates a SIGNAL that either motivates the existence
+  of the MAKEINSTANCE, or which indicates the value of the <tt>cardinality</tt> attribute
+  (see annotation of "John taught twice on Monday but only once on Tuesday" below
+  for an example of this). </p>
+<p>The possible value of <tt>cardinality</tt> is given as CDATA, i.e. any ASCII
+  text. In reality, its values are most likely to range over the integers, along
+  with a limited number of quantificational elements such as "EVERY", "MOST",
+  etc. It may be possible to create a more constraining datatype (e.g. "Cardinality"),
+  based on the <tt>string</tt> datatype, which constrains it to a fixed set of
+  word tokens, and any sequence of digits, but we have not yet done this. </p>
+<p>The values of <tt>polarity</tt> and <tt>modality</tt> are determined by modifiers
+  found near the event in the text. Formally, this information was annotated
+  using a SIGNAL and a SLINK. Some examples:</p>
+
+<pre>(1) should have bought
+
+should have
+&lt;EVENT eid="e1" class="OCCURRENCE"&gt;
+bought
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei1" eventID="e1" pos="VERB" tense="PAST" aspect="PERFECTIVE" modality="SHOULD" polarity="POS"/&gt;
+
+(2) did not teach
+
+did not
+&lt;EVENT eid="e1" class="OCCURRENCE"&gt;
+teach
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei1" eventID="e1" pos="VERB" tense="PRESENT" aspect="NONE" polarity="NEG"/&gt;
+
+(3) must not teach twice
+
+must not
+&lt;EVENT eid="e1" class="OCCURRENCE"&gt;
+teach
+&lt;/EVENT&gt;
+&lt;SIGNAL sid="s1"&gt;
+twice
+&lt;/SIGNAL&gt;
+&lt;MAKEINSTANCE eiid="ei1" eventID="e1" pos="VERB" tense="PRESENT" aspect="NONE" polarity="NEG" modality="MUST" signalID="s1" cardinality="2"/&gt;</pre>
+
+<p><a name="timex3"></a></p>
+<h3>2.3 &nbsp; &lt;TIMEX3&gt;</h3>
+
+<p>The TIMEX3 tag is primarily used to mark up explicit temporal expressions,
+  such as times, dates, durations, etc. It is modeled on Setzer's (2001) TIMEX
+  tag, as well as the TIDES (Ferro, et al. (2002)) TIMEX2 tag. Since it differs
+  both in attribute structure and in use, it seemed best to give it a separate
+  name, which reveals its heritage while at the same time indicating that it
+  is different from its forebears. </p>
+
+<pre class="dtd">attributes ::= tid type [functionInDocument] [beginPoint] [endPoint]
+               [quant] [freq] [temporalFunction] (value | valueFromFunction)
+               [mod] [anchorTimeID] [comment]
+
+tid ::= ID
+{tid ::= TimeID
+TimeID ::= t&lt;integer&gt;}
+type ::= 'DATE' | 'TIME' | 'DURATION' | 'SET'
+beginPoint ::= IDREF
+{beginPoint ::= TimeID}
+endPoint ::= IDREF
+{endPoint ::= TimeID}
+quant ::= CDATA
+freq ::= Duration
+functionInDocument ::= 'CREATION_TIME' | 'EXPIRATION_TIME' | 'MODIFICATION_TIME' |
+                       'PUBLICATION_TIME' | 'RELEASE_TIME'| 'RECEPTION_TIME' |
+                       'NONE' {default, if absent, is 'NONE'}
+temporalFunction ::= 'true' | 'false' {default, if absent, is 'false'}
+{temporalFunction ::= boolean}
+value ::=&nbsp; Duration | Date | Time | WeekDate | WeekTime | Season | PartOfYear | PaPrFu
+valueFromFunction ::= IDREF
+{valueFromFunction ::= TemporalFunctionID
+TemporalFunctionID ::= tf&lt;integer&gt;}
+mod ::= 'BEFORE' | 'AFTER' | 'ON_OR_BEFORE' | 'ON_OR_AFTER' |'LESS_THAN' | 'MORE_THAN' |
+        'EQUAL_OR_LESS' | 'EQUAL_OR_MORE' | 'START' | 'MID' | 'END' | 'APPROX'
+anchorTimeID ::= IDREF
+{anchorTimeID ::= TimeID}
+comment ::= CDATA</pre>
+
+<p><tt>functionInDocument</tt>, an optional attribute, indicates the function
+  of the TIMEX3 in providing a temporal anchor for other temporal expressions
+  in the document. If this attribute is not explicitly supplied, the default
+  value is "NONE". The non-empty values take their names from the temporal
+  metadata tags in the Prism draft standard (available at <u>http://www.prismstandard.org/techdev/prismspec1.asp</u>),
+  and are intended to have the same interpretations:</p>
+<p>There are several times that mark the major milestones in the life of a news
+  resource: The time the story is published, the time it may be released (if
+  not immediately), the time it is received by a customer, and the time that
+  the story expires (if any). Dates and times should be represented using the
+  W3C-defined profile of ISO 8601 [W3C-NOTE-datetime]</p>
+
+<p>Table 4: Elements for Time and Date Information
+</p>
+<table border="0" cellspacing="0" cellpadding="5">
+  <tbody><tr>
+    <td>Element</td>
+    <td>&nbsp;</td>
+    <td>Role</td>
+  </tr>
+  <tr>
+    <td>prism:creationTime</td>
+    <td>&nbsp;</td>
+    <td>Date and time the identified resource was first created</td>
+  </tr>
+  <tr>
+    <td>prism:expirationTime</td>
+    <td>&nbsp;</td>
+    <td>Date and time when the right to publish material expires</td>
+  </tr>
+  <tr>
+    <td>prism:modificationTime</td>
+    <td>&nbsp;</td>
+    <td>Date and time the resource was last modified</td>
+  </tr>
+  <tr>
+    <td>prism:publicationTime</td>
+    <td>&nbsp;</td>
+    <td>Date and time when the resource is released to the public</td>
+  </tr>
+  <tr>
+    <td>prism:releaseTime</td>
+    <td>&nbsp;</td>
+    <td>Earliest date and time when the resource may be distributed</td>
+  </tr>
+  <tr>
+    <td>prism:receptionTime</td>
+    <td>&nbsp;</td>
+    <td>Date and time when the resource was received on current system</td>
+  </tr>
+</tbody></table>
+
+<p>Note that there can be as many instances of TIMEX3s containing
+  a <tt>functionInDocument</tt> attribute with a non-empty value as there are
+  TIMEX3s that express different functions. In practice, there will probably
+  be no more than two, one with CREATION_TIME and another with PUBLICATION_TIME,
+  since these are likely to be the only attributes that will appear in the text
+  of documents to be annotated. Note that RELEASE_TIME does not indicate when
+  the document was actually released. It is a specification of when the document
+  is allowed to be released. This comes up in documents that are syndicated and
+  where the issuing organization wants to delay publication by syndicators, so
+as not to be scooped.</p>
+<p>Note also that the Prism standard, at least in its temporal indicators, is
+  interested only in the document as an artifact, a piece of intellectual property.
+  This means that the Prism values do not indicate the function of a TIMEX3 relative
+  to the internal narrative of the document. The specification of the TimeML
+  language can fill this gap by adding values for the <tt>functionInDocument</tt> attribute
+  that capture narrative functions. At present, we leave the specification of
+  possible values as is, and will defer the obvious extension until annotation
+  of existing texts indicates that this is a pressing issue. </p>
+<p><tt>temporalFunction</tt>, an optional attribute, indicates whether the TIMEX3
+  is used as a temporal function; e.g. "two weeks ago". If this attribute
+  is not explicitly supplied, the default value is "false". It is used
+  in conjunction with <tt>anchorTimeID</tt>, which indicates the TIMEX3 to which
+  its denotation is applied. It also appears with <tt>valueFromFunction</tt>,
+  a pointer to a temporal function that determines its value. As was noted above,
+  TIMEX3 tags that behave as temporal functions are often underspecified in the
+  example annotations below. </p>
+<p>The datatypes specified for the <tt>value</tt> attribute---Duration, Date,
+  Time, WeekDate,&nbsp; WeekTime, Season, PartOfYear, PaPrFu---are XML datatypes
+  based on the 2002 TIDES guideline, which extends the ISO 8601 standard for
+  representing dates, times, and durations. See the 2002 TIDES guidelines for
+  details about the value attribute, and see the TimeML Schema (www.timeml.org/timeMLdocs/TimeML.xsd)
+  for complete definitions of each of these datatypes.</p>
+<p><tt>mod</tt> is an optional attribute adopted from TIDES. It is used for
+  temporal modifiers that cannot be expressed either within <tt>value</tt> proper,
+  or via links or temporal functions. Some examples: </p>
+
+<pre>(4) no more than 60 days
+
+&lt;TIMEX3 tid="t1" type="DURATION" value="P60D" mod="EQUAL_OR_LESS"&gt;
+no more than 60 days
+&lt;/TIMEX3&gt;
+
+(5) the dawn of 2000
+
+&lt;TIMEX3 tid="t2" type="DATE" value="2000" mod="START"&gt;
+the dawn of 2000
+&lt;/TIMEX3&gt;</pre>
+
+<p><tt>anchorTimeID</tt> is used to point to another TIMEX3 in the case of expressions
+  such as "last week", which have a functional interpretation. The
+  value of <tt>anchorTimeID</tt> provides the reference point to which the functional
+  interpretation applies. </p>
+<p><tt>quant</tt> and <tt>freq</tt> are used to specify sets that that denote
+  quantified times in a TIMEX3. <tt>quant</tt> is generally a literal from the
+  text that quantifies over the expression. <tt>freq</tt> contains an integer
+  value and a time granularity to represent any frequency contained in the set,
+  just as a period of time is represented in a duration. Some examples:</p>
+
+<pre>(6) twice a month
+
+&lt;TIMEX3 tid="t3" type="SET" value="P1M" freq="2X"&gt;
+twice a month
+&lt;/TIMEX3&gt;
+
+(7) three days every month
+
+&lt;TIMEX3 tid="t4" type="SET" value="P1M" quant="EVERY" freq="3D"&gt;
+three days every month
+&lt;/TIMEX3&gt;
+
+(8) daily
+
+&lt;TIMEX3 tid="t5" type="SET" value="P1D quant="EVERY"&gt;<br>daily
+&lt;/TIMEX3&gt;</pre>
+
+<p><tt>beginPoint</tt> and <tt>endpoint</tt> are used to anchor
+  durations to other time expressions in the document. If there is no explicit <tt>tid</tt> to
+  assign to one of these values, then an empty TIMEX3 tag is created to represent
+  the unspecified point. Conversely, if both the beginning and end points of
+  a duration are explicitly stated in the document, an empty TIMEX3 tag is created
+  to represent the unspecified duration. Some examples:</p>
+
+<pre>(9) two weeks from June 7, 2003
+
+&lt;TIMEX3 tid="t6" type="DURATION" value="P2W" beginPoint="t61" endPoint="t62"&gt;
+two weeks
+&lt;/TIMEX3&gt;
+&lt;SIGNAL sid="s1"&gt;
+from
+&lt;/SIGNAL&gt;
+&lt;TIMEX3 tid="t61" type="DATE" value="2003-06-07"&gt;
+June 7, 2003
+&lt;/TIMEX3&gt;
+&lt;TIMEX3 tid="t62" type="DATE" value="2003-06-21" temporalFunction="true" anchorTimeID="t6"/&gt;
+
+(10) 1992 through 1995
+
+&lt;TIMEX3 tid="t71" type="DATE" value="1992"&gt;
+1992
+&lt;/TIMEX3&gt;
+&lt;SIGNAL sid="s1"&gt;
+through
+&lt;/SIGNAL&gt;
+&lt;TIMEX3 tid="t72" type="DATE" value="1995"&gt;
+1995
+&lt;/TIMEX3&gt;
+&lt;TIMEX3 tid="t7" type="DURATION" value="P4Y" beginPoint="t71" endPoint="t72" temporalFunction="true"/&gt;</pre>
+
+<p><a name="signal"></a></p>
+<h3>2.4 &nbsp; &lt;SIGNAL&gt;</h3>
+
+<pre class="dtd">attributes ::= sid [comment]
+
+sid ::= ID
+{sid ::= SignalID
+SignalID ::= s&lt;integer&gt;}
+comment ::= CDATA
+</pre>
+
+<p>SIGNAL is used to annotate sections of text, typically function words, that
+  indicate how temporal objects are to be related to each other. The material
+  marked by SIGNAL constitutes several types of linguistic elements: </p>
+<ol>
+  <li>indicators of temporal relations such as temporal prepositions (e.g "on", "during")
+    and other temporal connectives (e.g. "when") and subordinators
+    (e.g. "if"). This functionality of the SIGNAL tag was introduced
+    by Setzer (2001). </li>
+  <li>indicators of temporal quantification such as "twice", "three
+    times", etc. </li>
+</ol>
+
+<p><a name="tlink"></a></p>
+<h3>2.5 &nbsp; &lt;TLINK&gt;</h3>
+
+<p>TLINK is one of the three TimeML link tags. Link tags encode the various
+  relations that exist between the temporal elements of a document. The motivations
+for having multiple types of links are the following: </p>
+<ol>
+  <li>To distinguish between event types and
+    event instances, such as those introduced by conjunction, quantification,
+    or negation. </li>
+  <li>To adequately handle subordinating contexts
+    involving modality and reported speech. </li>
+</ol>
+<p>TLINK is a temporal link. It represents the relation between two temporal
+  elements. </p>
+
+<pre class="dtd">attributes ::= [lid] [origin] (eventInstanceID | timeID) [signalID]
+               (relatedToEventInstance | relatedToTime) relType [comment]
+               [syntax]
+
+lid ::= ID
+{lid ::= LinkID
+LinkID ::= l&lt;integer&gt;}
+origin ::= CDATA
+eventInstanceID ::= IDREF
+{eventInstanceID ::= EventInstanceID}
+timeID ::= IDREF
+{timeID ::= TimeID}
+signalID ::= IDREF
+{signalID ::= SignalID}
+relatedToEventInstance ::= IDREF
+{relatedToEventInstance ::= EventInstanceID}
+relatedToTime ::= IDREF
+{relatedToTime ::= TimeID}
+relType ::= 'BEFORE' | 'AFTER' | 'INCLUDES' | 'IS_INCLUDED' | 'DURING' |
+            'SIMULTANEOUS' | 'IAFTER' | 'IBEFORE' | 'IDENTITY' |
+            'BEGINS' | 'ENDS' | 'BEGUN_BY' | 'ENDED_BY' | 'DURING_INV'
+comment ::= CDATA
+syntax ::= CDATA
+</pre>
+
+<p>The value of the optional <tt>origin</tt> attribute will be supplied by closure.
+  This information and the link ID (<tt>lid</tt>) are primarily used by the closure
+  algorithm.&nbsp; All links in TimeML may have these two attributes, but neither
+  will be included in the examples presented here.</p>
+
+<p>Examples: </p>
+
+<pre>(11) John taught 20 minutes every Monday.
+
+John
+&lt;EVENT eid="e1" class="OCCURRENCE"&gt;
+taught
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei1" eventID="e1" pos="VERB" tense="PAST" aspect="NONE" polarity="POS"/&gt;
+&lt;TIMEX3 tid="t1" type="DURATION" value="P20TM"&gt;
+20 minutes
+&lt;/TIMEX3&gt;
+&lt;TIMEX3 tid="t2" type="SET" value="xxxx-wxx-1" quant="EVERY"&gt;
+every Monday
+&lt;/TIMEX3&gt;
+&lt;TLINK timeID="t1" relatedToTime="t2" relType="IS_INCLUDED"/&gt;
+&lt;TLINK eventInstanceID="ei1" relatedToTime="t1" relType="DURING"/&gt;
+
+(12) John taught twice on Monday but only once on Tuesday.
+
+John
+&lt;EVENT eid="e1" class="OCCURRENCE"&gt;
+taught
+&lt;/EVENT&gt;
+&lt;SIGNAL sid="s1"&gt;
+twice
+&lt;/SIGNAL&gt;
+&lt;SIGNAL sid="s2".
+on
+&lt;/SIGNAL&gt;
+&lt;TIMEX3 tid="t1" type="DATE" value="xxxx-wxx-1"&gt;
+Monday
+&lt;/TIMEX3&gt;
+but only
+&lt;SIGNAL sid="s3"&gt;
+once
+&lt;/SIGNAL&gt;
+&lt;SIGNAL sid="s4"&gt;
+on
+&lt;/SIGNAL&gt;
+&lt;TIMEX3 tid="t2" type="DATE" value="xxxx-wxx-2"&gt;
+Tuesday
+&lt;/TIMEX3&gt;
+&lt;MAKEINSTANCE eiid="ei1" eventID="e1" tense="PAST" aspect="NONE" signalID="s1" polarity="POS" cardinality="2"/&gt;
+&lt;MAKEINSTANCE eiid="ei2" eventID="e1" tense="PAST" aspect="NONE" signalID="s3" polarity="POS" cardinality="1"/&gt;
+&lt;TLINK eventInstanceID="ei1" signalID="s2" relatedToTime="t1" relType="IS_INCLUDED"/&gt;
+&lt;TLINK eventInstanceID="ei2" signalID="s4" relatedToTime="t2" relType="IS_INCLUDED"/&gt;
+
+(13) John taught 5 minutes after the explosion.
+
+John
+&lt;EVENT eid="e1" class="OCCURRENCE"&gt;
+taught
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei1" eventID="e1" tense="PAST" aspect="NONE" polarity="POS"/&gt;
+&lt;TIMEX3 tid="t1" type="DURATION" value="PT5M" beginPoint="t2" endPoint="t3"&gt;
+5 minutes
+&lt;/TIMEX3&gt;
+&lt;SIGNAL sid="s1"&gt;
+after
+&lt;/SIGNAL&gt;
+the
+&lt;EVENT eid="e2" class="OCCURRENCE"&gt;
+explosion
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei2" eventID="e2" pos="NOUN" tense="NONE" aspect="NONE" polarity="POS" /&gt;
+&lt;TIMEX3 tid="t2" type="TIME" value="xxxx-xx-xx" temporalFunction="true" anchorTimeID="t1"/&gt;
+&lt;TIMEX3 tid="t3" type="TIME" value="xxxx-xx-xx" temporalFunction="true" anchorTimeID="t1"/&gt;
+&lt;TLINK eventInstanceID="ei2" signalID="s1" relatedToTime="t1" relType="BEGINS"/&gt;
+&lt;TLINK eventInstanceID="ei2" relatedToTime="t2" relType="IS_INCLUDED"/&gt;
+&lt;TLINK eventInstanceID="ei1" relatedToTime="t3" relType="IS_INCLUDED"/&gt;</pre>
+
+<p>Treatment of Temporal Functions: </p>
+
+<pre>(14) John taught from September to December last year.
+
+John
+&lt;EVENT eid="e1" class="OCCURRENCE"&gt;
+taught
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei1" eventID="e1" pos="VERB" tense="PAST" aspect="NONE" polarity="POS"/&gt;
+&lt;SIGNAL sid="s1"&gt;
+from
+&lt;/SIGNAL&gt;
+&lt;TIMEX3 tid="t1" type="DATE" value="xxxx-09"&gt;
+ September
+&lt;/TIMEX3&gt;
+&lt;SIGNAL sid="s2"&gt;
+to
+&lt;/SIGNAL&gt;
+&lt;TIMEX3 tid="t2" type="DATE" value="xxxx-12"&gt;
+December
+&lt;/TIMEX3&gt;
+&lt;TIMEX3 tid="t5" type="DURATION" value="P4M" beginPoint="t1" endPoint="t2" temporalFunction="true"/&gt;
+&lt;TIMEX3 tid="t3" type=DATE" value="1995" temporalFunction="true" anchorTimeID="t4"&gt;
+last year
+&lt;/TIMEX3&gt;
+&lt;TIMEX3 tid="t4" type="DATE" value="1996-03-27" functionInDocument="CREATION_TIME"&gt;
+03-27-96
+&lt;/TIMEX3&gt;
+&lt;TLINK timeID="t1" signalID="s1" relatedToTime="t5" relType="BEGINS"/&gt;
+&lt;TLINK timeID="t2" signalID="s2" relatedToTime="t5" relType="ENDS"/&gt;
+&lt;TLINK eventInstanceID="ei1" relatedToTime="t5" relType="HOLDS"/&gt;
+
+(15) John taught last week.
+
+John
+&lt;EVENT eid="e1" class="OCCURRENCE"&gt;
+taught
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei1" eventID="e1" pos="VERB" tense="PAST" aspect="NONE" polarity="POS"/&gt;
+&lt;TIMEX3 tid="t1" type="DATE" value="XXXX-WXX" temporalFunction="true" anchorTimeID="t2"&gt;
+last week
+&lt;/TIMEX3&gt;
+&lt;TIMEX3 tid="t2" type="DATE" value="1996-03-27" functionInDocument="CREATION_TIME"&gt;
+03-27-96
+&lt;/TIMEX3&gt;
+&lt;TLINK eventInstanceID="ei1" relatedToTime="t1" relType="IS_INCLUDED"/&gt;</pre>
+
+<p>Note: The TLINK relates TIMEX3 expressions. This is the only representation
+  that will adequately express the temporal anchoring of this event. </p>
+
+<pre>(16) John taught last week on Monday.
+
+John
+&lt;EVENT eid="e1" class="OCCURRENCE"&gt;
+taught
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei1" eventID="e1" pos="VERB" tense="PAST" aspect="NONE" polarity="POS"/&gt;
+&lt;TIMEX3 tid="t1" type="DATE" value="XXXX-WXX" temporalFunction="true" anchorTimeID="t2"&gt;
+last week
+&lt;/TIMEX3&gt;
+&lt;SIGNAL sid="s1"&gt;
+on
+&lt;/SIGNAL&gt;
+&lt;TIMEX3 tid="t3" type="DATE" value="XXXX-WXX-1" temporalFunction="true" &gt;
+Monday
+&lt;/TIMEX3&gt;
+&lt;TIMEX3 tid="t2" type="DATE" value="1996-03-27" functionInDocument="CREATION_TIME"&gt;
+03-27-96
+&lt;/TIMEX3&gt;
+&lt;TLINK eventInstanceID="ei1" relatedToTime="t1" relType="IS_INCLUDED"/&gt;
+&lt;TLINK timeID="t3" signalID="s1" relatedToTime="t2" relType="IS_INCLUDED"/&gt;</pre>
+
+<p><a name="slink"></a></p>
+<h3>2.6 &nbsp; &lt;SLINK&gt;</h3>
+
+<p>This is a subordination link that is used for contexts involving modality,
+  evidentials, and factives. An SLINK is used in cases where an event instance
+  subordinates another event instance type. These are cases where a verb takes
+  a complement and subordinates the event instance referred to in this complement.</p>
+
+<pre class="dtd">attributes ::= lid eventInstanceID [signalID]
+               subordinatedEventInstance relType [comment]
+               [syntax]
+
+lid ::= ID
+{lid ::= LinkID
+LinkID ::= l&lt;integer&gt;}
+origin ::= CDATA
+eventInstanceID ::= IDREF
+{eventInstanceID ::= EventInstanceID}
+subordinatedEventInstance ::= IDREF
+{subordinatedEventInstance ::= EventInstanceID}
+signalID ::= IDREF
+{signalID ::= SignalID}
+relType ::= 'MODAL' | 'EVIDENTIAL' | 'NEG_EVIDENTIAL' |
+            'FACTIVE' | 'COUNTER_FACTIVE' | 'CONDITIONAL'
+comment::= CDATA
+syntax ::= CDATA
+</pre>
+
+<p>Note that <tt>eventInstanceID</tt> is no longer optional (changed from 1.2.0).</p>
+<p>The following EVENT classes interact with SLINK: </p>
+<ol>
+  <li><tt>REPORTING</tt> </li>
+  <li><tt>I_STATE</tt> </li>
+  <li><tt>I_ACTION</tt> </li>
+</ol>
+<p>Some lexical notes: </p>
+<p>Verbs that introduce <tt>I_STATE</tt>&nbsp; EVENTs that induce SLINK: </p>
+<ol>
+  <li>want, desire, crave, lust </li>
+  <li>believe, doubt, suspect </li>
+  <li>hope, aspire </li>
+  <li>intend </li>
+  <li>fear, hate </li>
+  <li>love </li>
+  <li>enjoy </li>
+  <li>like </li>
+  <li>know </li>
+</ol>
+<p>Verbs that introduce <tt>I_ACTION</tt> EVENTs that induce SLINK: </p>
+<ol>
+  <li>attempt, try </li>
+  <li>persuade </li>
+  <li>promise </li>
+  <li>name </li>
+  <li>swear, vow </li>
+</ol>
+
+<p>Examples: </p>
+
+<pre>(17) If Graham leaves today, he will not hear Sabine.
+
+&lt;SIGNAL sid="s1"&gt;
+if
+&lt;/SIGNAL&gt;
+Graham
+&lt;EVENT eid="e1" class="OCCURRENCE"&gt;
+leaves
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei1" eventID="e1" pos="VERB" tense="PRESENT" aspect="NONE" polarity="POS"/&gt;
+&lt;TIMEX3 tid="t1" type="DATE" value="XXXX-XX-XX" temporalFunction="true" &gt;
+today
+&lt;/TIMEX3&gt;
+he will not
+&lt;EVENT eid="e2" class="OCCURRENCE"&gt;
+hear
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei2" eventID="e2" pos="VERB" tense="FUTURE" aspect="NONE" polarity="NEG" modality="WILL"/&gt;
+Sabine.
+&lt;SLINK eventInstanceID="ei1" subordinatedEventInstance="ei2" signaled="s1" relType="CONDITIONAL"/&gt;
+&lt;TLINK eventInstanceID="ei1" relatedToEventInstance="ei2" relType="BEFORE"/&gt;
+
+(18) Bill denied that John taught on Monday.
+
+Bill
+&lt;EVENT eid="e1" class="I_ACTION"&gt;
+denied
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei1" eventID="e1" pos="VERB" tense="PAST" aspect="NONE" polarity="POS"/&gt;
+that John
+&lt;EVENT eid="e2" class="OCCURRENCE"&gt;
+taught
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei2" eventID="e2" pos="VERB" tense="PAST" aspect="NONE" polarity="POS"/&gt;
+&lt;SIGNAL sid="s1"&gt;
+on
+&lt;/SIGNAL&gt;
+&lt;TIMEX3 tid="t1" type="DATE" value="XXXX-WXX-1"&gt;
+Monday
+&lt;/TIMEX3&gt;
+&lt;TLINK eventInstanceID="ei2" signalID="s1" relatedToTime="t1" relType="IS_INCLUDED"/&gt;
+&lt;SLINK eventInstanceID="ei1" subordinatedEventInstance="ei2" relType="NEG_EVIDENTIAL"/&gt;
+
+(19) Bill wants to teach on Monday.
+
+Bill
+&lt;EVENT eid="e1" class="I_STATE" &gt;
+wants
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei1" eventID="e1" pos="VERB" tense="PRESENT" aspect="NONE" polarity="POS"/&gt;
+&lt;SIGNAL sid="s1"&gt;
+to
+&lt;/SIGNAL&gt;
+&lt;EVENT eid="e2" class="OCCURRENCE" &gt;
+teach
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei2" eventID="e2" pos="VERB" aspect="NONE" tense="INFINITIVE" polarity="POS"/&gt;
+&lt;SIGNAL sid="s2"&gt;
+on
+&lt;/SIGNAL&gt;
+&lt;TIMEX3 tid="t1" type="DATE" value="XXXX-WXX-1"&gt;
+Monday
+&lt;/TIMEX3&gt;
+&lt;TLINK eventInstanceID="ei2" signalID="s2" relatedToTime="t1" relType="IS_INCLUDED"/&gt;
+&lt;SLINK eventInstanceID="ei1" signalID="s1" subordinatedEventInstance="ei2" relType="MODAL"/&gt;
+
+(20) Bill attempted to save her.
+
+Bill
+&lt;EVENT eid="e1" class="I_ACTION"&gt;
+attempted
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei1" eventID="e1" pos="VERB" tense="PAST" aspect="NONE" polarity="POS"/&gt;
+&lt;SIGNAL sid="s1"&gt;
+to
+&lt;/SIGNAL&gt;
+&lt;EVENT eid="e2" class="OCCURRENCE"&gt;
+save
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei2" eventID="e2" pos="VERB" tense="INFINITIVE" aspect="NONE" polarity="POS"/&gt;
+her
+&lt;SLINK eventInstanceID="ei1" signalID="s1" subordinatedEventInstance="ei2" relType="MODAL"/&gt;</pre>
+
+<p><a name="alink"></a></p>
+<h3>2.7 &nbsp; &lt;ALINK&gt;</h3>
+
+<p>ALINK is an aspectual link; it indicates an aspectual connection between
+  two events. In some ways, it is like a cross between TLINK and SLINK in that
+  it indicates both a relation between two temporal elements, as well as aspectual
+  subordination </p>
+
+<pre class="dtd">attributes ::= lid eventInstanceID [signalID] relatedToEventInstance relType
+               [comment] [syntax]
+
+lid ::= ID
+{lid ::= LinkID
+LinkID ::= l&lt;integer&gt;}
+eventInstanceID ::= ID
+{eventInstanceID ::= EventInstanceID}
+signalID ::= IDREF
+{signalID ::= SignalID}
+relatedToEventInstance ::= IDREF
+{relatedToEventInstance ::= EventInstanceID}
+relType ::= 'INITIATES' | 'CULMINATES' | 'TERMINATES' | 'CONTINUES' | 'REINITIATES'
+comment::= CDATA
+syntax ::= CDATA
+</pre>
+
+<p>Some examples: </p>
+
+<pre>(21) The boat began to sink.
+
+The boat
+&lt;EVENT eid="e1" class="ASPECTUAL"&gt;
+began
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei1" eventID="e1" pos="VERB" tense="PAST" aspect="NONE" polarity="POS"/&gt;
+&lt;SIGNAL sid="s1"&gt;
+to
+&lt;/SIGNAL&gt;
+&lt;EVENT eid="e2" class="OCCURRENCE" &gt;
+sink
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei2" eventID="e2" pos="VERB" tense="INFINITIVE" aspect="NONE" polarity="POS"/&gt;
+&lt;ALINK eventInstanceID="ei1" signalID="s1" relatedToEventInstance="ei2" relType="INITIATES"/&gt;
+
+(22) The search party stopped looking for the survivors.
+
+The search party
+&lt;EVENT eid="e1" class="ASPECTUAL"&gt;
+stopped
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei1" eventID="e1" pos="VERB" tense="PAST" aspect="NONE" polarity="POS"/&gt;
+&lt;EVENT eid="e2" class="OCCURRENCE"&gt;
+looking
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei2" eventID="e2" pos="VERB" tense="PRESPART" aspect="NONE" polarity="POS"/&gt;
+&lt;ALINK eventInstanceID="ei1" relatedToEventInstance="ei2" relType="TERMINATES"/&gt;
+for the survivors</pre>
+
+<p><a name="confidence"></a></p>
+<h3>2.8 &nbsp; &lt;CONFIDENCE&gt;</h3>
+
+<p>In various discussions of the full TERQAS groups, the utility of being able
+  to mark confidence values for various aspects of the annotation was pointed
+  out. In general, it would be useful to allow confidence values to be assigned
+  to any tag, and, in fact, to any attribute of any tag. </p>
+<p>A convenient way to do this would be to create a confidence tag, which would
+  consume no input, and which would have the following attributes: </p>
+
+<pre class="dtd">attributes ::= tagType tagID [attributeName] confidenceValue [comment]
+
+tagType ::= CDATA
+tagID ::= IDREF
+attributeName ::= CDATA
+confidenceValue ::= CDATA
+{confidenceValue ::= 0 &lt; x &lt; 1}
+comment ::= CDATA
+</pre>
+
+<p>where </p>
+<blockquote>
+  <tt>tagType</tt> would range over the names of all the tags of TimeML<br>
+  <tt>tagID</tt> would range over the set of actual tag IDs within the current document (XML type IDREF)<br>
+  <tt>attributeName</tt> would range over the names of all the attributes of all the tags of TimeML<br>
+<tt>confidenceValue</tt> would range over the rationals (i.e. would have a floating point value) between 0 and 1</blockquote>
+
+<p>So, for example, given this annotation: </p>
+
+<pre>(23) The TWA flight crashlanded on Easter Island two weeks ago
+
+The TWA flight
+&lt;EVENT eid="e1" class="OCCURRENCE"&gt;
+crashlanded
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei1" eventID="e1" pos="VERB" tense="PAST" aspect="NONE" polarity="POS"/&gt;
+on Easter Island
+&lt;TIMEX3 tid="t1" type="DURATION" value="P2W" beginPoint="t2" endPoint="t3"&gt;
+two weeks ago
+&lt;/TIMEX3&gt;
+&lt;TIMEX3 tid="t3" type="DATE" value="1999-12-06" temporalFunction="true" anchorTimeID="t1"/&gt;
+...
+&lt;TIMEX3 tid="t2" type="DATE" functionInDocument="CREATION_TIME" value="1999-12-20"&gt;
+12-20-1999
+&lt;/TIMEX3&gt;
+&lt;TLINK eventInstanceID="ei1" relatedToTime="t3" relType="IS_INCLUDED"/&gt;</pre>
+
+<p>If we wanted to indicate that we were unsure that we had annotated "two
+  weeks ago" correctly, we could add this annotation: </p>
+
+<pre class="dtd">(23') &lt;CONFIDENCE tagType="TIMEX3" tagID="t1" confidenceValue="0.50"/&gt;</pre>
+
+<p>where the lack of the optional attribute, <tt>attributeName</tt>, indicates
+  that the confidence applies to the whole tag. </p>
+<p>On the other hand, if we wanted to indicate that we weren't sure if the tense
+  of "crashlanded" was really <tt>"PAST"</tt>, we could add
+  this annotation:</p>
+
+<pre class="dtd">(23'') &lt;CONFIDENCE tagType="EVENT" tagID="e1" attributeName="TENSE" confidenceValue="0.75"/&gt;</pre>
+
+<p>Abstracting confidence measures as a separate tag frees the annotation from
+  having to include a confidence value attribute in every tag and eliminates
+  the problem of uncertainty over the exact attribute of a tag the confidence
+  value applies to. </p>
+<p>As for how confidence values should be assigned in manual annotation, we
+  feel that, in a large-scale annotation effort such as TIMEBANK, two conditions
+  should be satisfied: </p>
+<ol>
+  <li>Fairly high inter-annotator agreement on the tag assignment in the text. </li>
+  <li>Ease of use and habitability of the tool from the annotator's perspective. </li>
+</ol>
+<p>Therefore, the annotation of a scalar value such as confidence should have
+  at least two features: </p>
+<ul>
+  <li>The choice of confidence values should
+    be as clearly defined as possible to cover the options; this relates to the
+    granularity and orders of magnitude as presented by Jerry Hobbs as well.
+    This would suggest a selection from a small set (e.g. low, mid, high; not_sure,
+    sure, abolutely_sure). These could be interpreted or rescaled to a (0,1]
+    range, if need be, for subsequent inference. </li>
+  <li>There should be a default value specified
+    (at high (=1)) so that it is not necessary to annotate all links and attributes
+    for them with a confidence. </li>
+</ul>
+<p>The constraint on human annotators to a subset of the possible values should
+  be documented in the annotation guidelines and implemented in the annotation
+  tool. And it would probably be best if the annotation tool did not present
+  numbers but rather natural language descriptions such as those suggested above,
+  which would be represented in the underlying annotation numerically. For example,
+  the annotator might pick "moderately certain", which would enter
+  the annotation as .5. </p>
+<p>Moreover, for manual annotation, it does not seem that the 0 and 1 values
+  will be used/useful. Presumably if the annotator doesn't trust an annotation
+  at all s/he won't add it. And, as was suggested above, 1, at least for manual
+  annotation, should be the default or unmarked value, and so need not be noted,
+  since it would bulk up the files considerably, even if it were used only on
+  entire tags. </p>
+
+<p><a name="timeml"></a></p>
+<h3>2.9 &nbsp; &lt;TimeML&gt;</h3>
+
+<p>Inasmuch as every well-formed XML document must have a single root node,
+  we supply <tt>TimeML</tt> as this node. For example, a sample annotated TimeML
+  document might look like this: </p>
+
+<pre>&lt;?xml version="1.0"?&gt;
+&lt;!DOCTYPE TimeML SYSTEM "TimeML.dtd"&gt;
+&lt;TimeML&gt;
+FAMILIES SUE OVER AREOFLOT CRASH DEATHS
+&nbsp;&nbsp; The Russian airline Aeroflot has been
+&lt;EVENT eid="e1" class="OCCURRENCE"&gt;
+hit
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei1" eventID="e1" pos="VERB" tense="PRESENT" aspect="PERFECTIVE" polarity="POS"/&gt;
+with a writ for loss and damages,
+&lt;EVENT eid="e2" class="OCCURRENCE"&gt;
+filed
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei2" eventID="e2" pos="VERB" tense="PAST" aspect="NONE" polarity="POS"/&gt;
+in Hong Kong by the families of seven passengers
+&lt;EVENT eid="e3" class="OCCURRENCE"&gt;
+killed
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei3" eventID="e3" pos="VERB" tense="PAST" aspect="NONE" polarity="POS"/&gt;
+&lt;SIGNAL sid="s1"&gt;
+in
+&lt;/SIGNAL&gt;
+an air
+&lt;EVENT eid="e4" class="OCCURRENCE"&gt;
+crash
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei4" eventID="e4" pos="VERB" tense="NONE" aspect="NONE" polarity="POS"/&gt;.
+&nbsp;&nbsp; All 75 people
+&lt;EVENT eid="e7" class="STATE"&gt;
+on board
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei7" eventID="e7" pos="PREP" tense="NONE" aspect="NONE" polarity="POS"/&gt;
+&lt;TLINK eventInstanceID="ei7" relatedToEvent="ei5" relType="INCLUDES"/&gt;
+the Aeroflot Airbus
+&lt;EVENT eid="e5" class="OCCURRENCE" &gt;
+died
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei5" eventID="e5" pos="VERB" tense="PAST" aspect="NONE" polarity="POS"/&gt;
+&lt;TLINK eventInstanceID="ei5" signalID="s2" relatedToEvent="ei6" relType="IAFTER"/&gt;
+&lt;SIGNAL sid="s2"&gt;
+when
+&lt;/SIGNAL&gt;
+it
+&lt;EVENT eid="e6" class="OCCURRENCE"&gt;
+ploughed
+&lt;/EVENT&gt;
+&lt;MAKEINSTANCE eiid="ei6" eventID="e6" pos="VERB" tense="PAST" aspect="NONE" polarity="POS"/&gt;
+&lt;TLINK eventInstanceID="ei6" signalID="s3" relatedToTime="t2" relType="IS_INCLUDED"/&gt;
+&lt;TLINK eventInstanceID="ei6" relatedToEvent="ei4" relType="IDENTITY"/&gt;
+into a Siberian mountain
+&lt;SIGNAL sid="s3"&gt;
+in
+&lt;/SIGNAL&gt;
+&lt;TIMEX3 tid="t2" type="DATE" value="1994-04"&gt;
+March 1994
+&lt;/TIMEX3&gt;.
+...
+&lt;TIMEX3 tid="t1" type="DATE" value="1996-03-27"&gt;
+03-27-96
+&lt;/TIMEX3&gt;
+&lt;TLINK eventInstanceID="ei1" relatedToTime="t1" relType="BEFORE"/&gt;
+&lt;TLINK eventInstanceID="ei2" relatedToEvent="ei1" relType="BEFORE"/&gt;
+&lt;TLINK eventInstanceID="ei3" relatedToEvent="ei2" relType="BEFORE"/&gt;
+&lt;TLINK eventInstanceID="ei3" signalID="s1" relatedToEvent="ei4" relType="IS_INCLUDED"/&gt;
+&lt;/TimeML&gt;</pre>
+
+<p><a name="changes"></a></p>
+<h2>3 &nbsp; Changes from Version 1.2 to 1.2.1</h2>
+<ul>
+<li>The <tt>nf_morph</tt> attribute that was part of MAKEINSTANCE has been changed
+to <tt>pos</tt> (part of speech), and the PRESPART, PASTPART, and INFINITIVE
+elements of <tt>nf_morph</tt> redistributed to <tt>tense</tt>.</li>
+<br>
+<li>The optional <tt>syntax</tt> attribute was added to SLINK, ALINK, and
+TLINK.  Syntax can be used to hold CDATA, but is generally only used by
+annotation programs to hold the data that led to the creation of the tag.</li>
+<br>
+<li>The optional <tt>comment</tt> attribute was added to all TimeML elements,
+for the purpose of giving (human) annotators a place to put observations about
+annotated text.</li>
+<br>
+
+</ul>
+
+<h2>Bibliography</h2>
+<p>Ferro, Lisa, Gerber, Laurie, Mani, Inderjeet, Sundheim, Beth, and Wilson,
+  George. (2002) <i>Instruction Manual for the Annotation of Temporal Expressions</i>,
+  MITRE Washington C3 Center, McLean, Virginia. </p>
+<p>Setzer, Andrea (2001) <i>Temporal Information in Newswire Articles: An Annotation
+    Scheme and Corpus Study</i>, Doctoral Dissertation, University of Sheffield,
+    Sheffield, UK. </p>
+<p>Pustejovsky, James, Saur’, Roser, Setzer, Andrea, Ingria, Bob (2002) <i>TimeML
+    Annotation Guidelines</i>. </p>
+
+
+</div></body></html>

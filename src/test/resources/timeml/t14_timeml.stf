@@ -1,0 +1,5 @@
+ei1,taught,occurrence
+t1,1994
+t2,1999
+l1,ei1,t1,BEGUN_BY
+l2,ei1,t2,ENDED_BY

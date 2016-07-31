@@ -1,0 +1,15 @@
+ei1,left,occurrence
+t0,2002-07-11
+t1,P2D
+t2,2002-07-10
+t3,2002-07-08
+l1,t3,t2,BEFORE
+l2,t2,ei1,AFTER
+l3,ei1,t3,IS_INCLUDED
+l4,t0,t2,AFTER
+l5,t0,t3,AFTER
+l6,t0,ei1,AFTER
+l7,ei1,t1,VAGUE
+l8,t1,t0,VAGUE
+l9,t1,t2,VAGUE
+l10,t1,t3,VAGUE

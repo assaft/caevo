@@ -1,0 +1,9 @@
+ei1,earthquake,occurrence
+ei2,struck,occurrence
+t0,2002-07-13
+t1,P3Y
+t2,2002-07-12
+t3,1999-07-12
+l1,ei1,ei2,IBEFORE
+l2,ei1,t3,IS_INCLUDED
+

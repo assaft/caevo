@@ -1,0 +1,5 @@
+ei1,arrived,occurrence
+ei2,left,occurrence
+t1,2002-07-09
+t2,P2D
+l1,ei1,ei2,t2,AFTER

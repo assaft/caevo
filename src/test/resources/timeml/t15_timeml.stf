@@ -1,0 +1,5 @@
+ei1,rains,occurrence
+ei2,caused,occurrence
+ei3,flooding,occurrence
+l1,ei1,ei3,BEFORE
+l2,ei1,ei2,IDENTITY

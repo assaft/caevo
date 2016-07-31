@@ -1,0 +1,7 @@
+ei1,left,occurrence
+t0,2002-06-25
+t1,P2W
+t2,2002-07-02
+t3,2002-07-16
+l1,t2,t1,AFTER
+l2,ei1,t3,IS_INCLUDED

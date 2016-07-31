@@ -1,0 +1,1 @@
+TimeML has a link: l1,t1,t2,BEFORE. We don't have that in the gold because in our view durations and dates are incomparable.

@@ -1,0 +1,15 @@
+ei1,arrived
+ei2,left
+t0,2002-07-10
+t1,2002-07-09
+t2,P2D
+l1,ei1,t1,IS_INCLUDED
+l2,ei2,t2,BEFORE
+l3,ei1,t2,AFTER
+l4,ei1,ei2,AFTER
+l5,t1,t2,AFTER
+l6,t0,t1,AFTER
+l7,ei1,t0,BEFORE
+l8,t2,t0,BEFORE
+l9,ei2,t0,BEFORE
+l10,ei2,t1,BEFORE
