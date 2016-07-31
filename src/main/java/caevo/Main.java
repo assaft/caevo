@@ -57,6 +57,7 @@ public class Main {
 	boolean useClosure = true;
 	boolean force24hrDCT = true;
 	String dctHeuristic = "none";
+	String infopath = null;
 
 	// parser 
 	LexicalizedParser parser;
@@ -76,8 +77,45 @@ public class Main {
 	 */
 	public Main(String[] args) {
 		Properties cmdlineProps = StringUtils.argsToProperties(args);
-		String infopath = null;
+
+		initProperties();
 		
+		// -info on the command line?
+		if( cmdlineProps.containsKey("info") )
+			infopath = cmdlineProps.getProperty("info");
+        
+		if( infopath != null ) {
+			System.out.println("Checking for infofile at " + infopath);
+			thedocs = new SieveDocuments(infopath);
+			thedocsUnchanged = new SieveDocuments(infopath);
+		}
+
+		// -set on the command line?
+		if( cmdlineProps.containsKey("set") ) {
+			String type = cmdlineProps.getProperty("set");
+			dataset = DatasetType.valueOf(type.toUpperCase());
+		}
+		
+		init();
+	}
+	
+	/**
+	 * Empty Constructor.
+	 */
+	public Main() {
+		initProperties();
+		init();
+	}
+	
+	public String getDefaultFixedDct() {
+		try {
+			return dctHeuristic.equals("setFixedDateAsDCT") ? CaevoProperties.getString("Main.dct") : "";
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to get default dct: " + e.getMessage());
+		}
+	}
+	
+	private void initProperties() {
 		// Read the properties from disk at the location specified by -Dprops=XXXXX
 		try {
 			CaevoProperties.load();
@@ -90,38 +128,10 @@ public class Main {
 			force24hrDCT = CaevoProperties.getBoolean("Main.force24hrdct", force24hrDCT);
 			dctHeuristic = CaevoProperties.getString("Main.dctHeuristic", dctHeuristic);
 		} catch (IOException e) { e.printStackTrace(); }
-        
-		// -info on the command line?
-		if( cmdlineProps.containsKey("info") )
-			infopath = cmdlineProps.getProperty("info");
-        
-		if( infopath != null ) {
-			System.out.println("Checking for infofile at " + infopath);
-			thedocs = new SieveDocuments(infopath);
-			thedocsUnchanged = new SieveDocuments(infopath);
-		}
-        
-		// -set on the command line?
-		if( cmdlineProps.containsKey("set") ) {
-			String type = cmdlineProps.getProperty("set");
-			dataset = DatasetType.valueOf(type.toUpperCase());
-		}
-		
-		init();
-		
-		System.out.println("Dataset:\t" + dataset);
-		System.out.println("Using Closure:\t" + useClosure);
-		System.out.println("Debug:\t\t" + debug);
-	}
-	
-	/**
-	 * Empty Constructor.
-	 */
-	public Main() {
-		init();
 	}
 	
 	private void init() {
+		
 		// Initialize the transitive closure code.
 		try {
 			closure = new Closure();
@@ -150,6 +160,10 @@ public class Main {
 		
 		eventClassifier = new TextEventClassifier(wordnet);
 		eventClassifier.loadClassifiers();
+		
+		System.out.println("Dataset:\t" + dataset);
+		System.out.println("Using Closure:\t" + useClosure);
+		System.out.println("Debug:\t\t" + debug);
 	}
 
 	private String[] loadSieveList() {
@@ -295,8 +309,12 @@ public class Main {
 			currentTLinksHash.clear();
 		}
 		
-		System.out.println("Writing output: " + outpath);
-		docs.writeToXML(new File(outpath));
+		try {
+			if (CaevoProperties.getBoolean("Main.debug")) {
+				System.out.println("Writing output: " + outpath);
+				docs.writeToXML(new File(outpath));
+			}
+		} catch (IOException e) {}
 		
 		// Evaluate it if the input file had tlinks in it.
 		if( thedocsUnchanged != null )
@@ -621,6 +639,9 @@ public class Main {
 	 * @param path Single file or directory of text files.
 	 */
 	public void markupRawXML(String path) {
+		markupRawXML(path,getDefaultFixedDct());
+	}
+	public void markupRawXML(String path, String dct) {
 		SieveDocuments docs = new SieveDocuments();
 		
 		// If a directory: parse a directory of XML files.
@@ -648,7 +669,7 @@ public class Main {
 		}
 		
 		// Markup events, times, and tlinks.
-		markupAll(docs);
+		markupAll(docs, dct);
 		
     // Output the documents.
 		String outpath = path + ".info.xml";
@@ -665,9 +686,15 @@ public class Main {
 	 * @param path Single file or directory of text files.
 	 */
 	public SieveDocuments markupRawText(String path) {
-		return markupRawText(path,true);
+		return markupRawText(path,getDefaultFixedDct());
+	}
+	public SieveDocuments markupRawText(String path, String dct) {
+		return markupRawText(path,true,dct);
 	}
 	public SieveDocuments markupRawText(String input, boolean isPath) {
+		return markupRawText(input,isPath,getDefaultFixedDct());
+	}
+	public SieveDocuments markupRawText(String input, boolean isPath, String dct) {
 		SieveDocuments docs = new SieveDocuments();
 
 		// If a directory: parse a directory of XML files.
@@ -691,7 +718,7 @@ public class Main {
 		}
 
 		// Markup events, times, and tlinks.
-		markupAll(docs);
+		markupAll(docs,dct);
 		
 		if (isPath) {
 			String path = input;
@@ -709,10 +736,14 @@ public class Main {
 	/**
 	 * Assumes the InfoFile has its text parsed.
 	 */
+	
 	public void markupAll() {
-		markupAll(thedocs);
+		markupAll(getDefaultFixedDct());
 	}
-	public void markupAll(SieveDocuments docs) {
+	public void markupAll(String dct) {
+		markupAll(thedocs,dct);
+	}
+	public void markupAll(SieveDocuments docs, String dct) {
 		markupEvents(docs);
     // Try to determine DCT based on relevant property settings
 		// TODO: use reflection method parallel to how sieves are chosen to choose the right DCTHeuristic method
@@ -721,11 +752,7 @@ public class Main {
 				DCTHeursitics.setFirstDateAsDCT(doc);  // only if there isn't already a DCT specified!
 			}
 		} else if (dctHeuristic.equals("setFixedDateAsDCT")) {
-			String date = "1969-07-21";
-			try {
-				date = CaevoProperties.getString("Main.dct", date);
-			} catch (IOException ignored) {
-			}
+			String date = dct;
 			for (SieveDocument doc : docs.getDocuments()) {
 				DCTHeursitics.setFixedDateAsDCT(doc, date);
 			}
@@ -790,7 +817,7 @@ public class Main {
 	public static void main(String[] args) {
         //		Properties props = StringUtils.argsToProperties(args);
 		Main main = new Main(args);
-		
+
 		// Test each sieve's precision independently.
 		// Runs each sieve and evaluates its proposed links against the input -info file.
 		if( args.length > 0 && args[args.length-1].equalsIgnoreCase("gauntlet") ) {
