@@ -13,7 +13,7 @@ before_script:
   - curl http://wordnetcode.princeton.edu/wn3.1.dict.tar.gz | tar -xzv -C $WORDNET
 
 install: 
-  - pip install github3.py
+  - pip install --pre github3.py --user
 
 script: mvn clean install
 

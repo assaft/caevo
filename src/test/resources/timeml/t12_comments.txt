@@ -1,0 +1,1 @@
+In the original TimeML annotation the relation 'Holds' was used instead of 'During'.

@@ -1,0 +1,1 @@
+TimeML used 'occurrence' here; we use 'state' to be able to derive that the event took place in any year in the stated range.

@@ -1,0 +1,1 @@
+TimeML has some serious issue here, since their annotation implies (2002-07-15,2002-07-17) rather than [2002-07-15,2002-07-17]. We use a closed range and rely on the class of the event as either 'occurrence' or 'state' to indicate whether it is an instantaneous or an enduring event.

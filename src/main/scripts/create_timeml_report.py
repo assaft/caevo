@@ -4,7 +4,7 @@ import os
 from github3 import login, GitHub
 from github3 import ForbiddenError
 from collections import defaultdict
-import yaml
+
 
 htmlfile = 'timeml_report.html'
 introfile = 'timeml_report.txt'
@@ -204,7 +204,7 @@ with open(htmlfile, 'w') as outfile:
     outfile.write('</tr>\n')
 
     
-    filelist = os.listdir(".")
+    filelist = sorted(os.listdir("."))
     #filelist = ["t01.txt"]
     for tname in filelist:
         matchObj  = re.match(r'^t\d\d\.txt$', tname)
