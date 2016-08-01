@@ -1,6 +1,8 @@
 package caevo.parser;
 
+import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.HasWord;
+import edu.stanford.nlp.trees.LabeledScoredTreeNode;
 import edu.stanford.nlp.trees.Tree;
 
 import java.util.List;
@@ -39,4 +41,12 @@ public abstract class ParserAdapter {
      */
     public abstract Tree parseTree(List<HasWord> sentence);
 
+    protected Tree createRootNode() {
+        CoreLabel rootLabel = new CoreLabel();
+        rootLabel.setBeginPosition(-1);
+        rootLabel.setEndPosition(-1);
+        rootLabel.setCategory("ROOT");
+        rootLabel.setValue("ROOT");
+        return new LabeledScoredTreeNode(rootLabel);
+    }
 }

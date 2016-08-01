@@ -43,8 +43,7 @@ import java.util.*;
  * @author chambers
  */
 public class Main {
-    public static final String serializedGrammar = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz";
-    
+
 	private TextEventClassifier eventClassifier;
 	private TimexClassifier timexClassifier;
 	public static WordNet wordnet;
@@ -72,24 +71,32 @@ public class Main {
 	private String[] sieveClasses;
 
 	static ParserAdapter initParser(String parserClassName, String grammar) {
+		// default parser
 		Class<? extends ParserAdapter> parserClass = StanfordParserAdapter.class; // default parser
+		ParserAdapter parser = null;
+		try {
+			parser = parserClass.newInstance();
+			parser.init();
+		} catch (Exception ignored) {
+		}
+
 		if (parserClassName != null && !parserClassName.isEmpty()) {
 			try {
 				Class<?> clazz = Class.forName(parserClassName);
-				if (clazz.isAssignableFrom(ParserAdapter.class)) {
+				if (ParserAdapter.class.isAssignableFrom(clazz)) {
 					parserClass = (Class<? extends ParserAdapter>) clazz;
 				}
 			} catch (Exception e) {
 				System.out.println("Provided parser class is not usable. Using default parser (Stanford).");
+				return parser;
 			}
 		}
-		ParserAdapter parser;
 		try {
 			parser = parserClass.newInstance();
 		} catch (Exception e) {
 			System.out.println("Could not create parser; Reverting to default parser (Stanford).");
 			e.printStackTrace();
-			parser = new StanfordParserAdapter();
+			return parser;
 		}
 		try {
 			parser.init(grammar);
@@ -114,6 +121,7 @@ public class Main {
 
 			// initialize parser
 			String parserClassStr = CaevoProperties.getString("Main.parser");
+			String serializedGrammar = CaevoProperties.getString("Main.parser.arg");
 			this.parser = initParser(parserClassStr, serializedGrammar);
 
 			// Look for a given pre-processed InfoFile

@@ -28,7 +28,7 @@ public class EventExtractionTest extends TestCase {
 		writer.close();
 
 		ParserAdapter parser = new StanfordParserAdapter();
-		parser.init(Main.serializedGrammar);
+		parser.init();
 		SieveDocument doc = classifier.markupRawTextToSieveDocument(tempfile, parser);
 		assertNotNull(doc);
 		// Number of expected sentences.

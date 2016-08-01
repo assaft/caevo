@@ -13,6 +13,7 @@ import java.util.List;
  */
 public class StanfordParserAdapter extends ParserAdapter {
 
+    private static final String DEFAULT_GRAMMAR_FILE = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz";
     private LexicalizedParser parser = null;
 
     public StanfordParserAdapter() {
@@ -24,6 +25,9 @@ public class StanfordParserAdapter extends ParserAdapter {
     }
 
     public void init(String... args) {
-        this.parser = LexicalizedParser.loadModel(args[0]);
+        if (args.length > 0 && args[0] != null)
+            this.parser = LexicalizedParser.loadModel(args[0]);
+        else
+            this.parser = LexicalizedParser.loadModel(DEFAULT_GRAMMAR_FILE);
     }
 }

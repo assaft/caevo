@@ -13,7 +13,9 @@ import opennlp.tools.parser.ParserModel;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 /**
  * This class implements the bridge between the OpenNLP parser product and that of the Stanford parser.
@@ -38,32 +40,27 @@ public class OpenNlpParserAdapter extends ParserAdapter {
 
         Parse result = ParserTool.parseLine(sentence, parser, 1)[0];
 
-        CoreLabel rootLabel = new CoreLabel();
-        rootLabel.setBeginPosition(-1);
-        rootLabel.setEndPosition(-1);
-        rootLabel.setCategory("ROOT");
-        rootLabel.setValue("ROOT");
-        LabeledScoredTreeNode root = new LabeledScoredTreeNode(rootLabel);
-
-        Tree child = convertOpenNlpToStanfordTree(result.getChildren()[0]);
+        Tree root = createRootNode();
+        Queue<HasWord> leavesQ = new LinkedList<>(sentenceWords);
+        Tree child = convertOpenNlpToStanfordTree(result.getChildren()[0], leavesQ);
 
         root.setChildren(new Tree[]{child});
         return root;
     }
 
-    private Tree convertOpenNlpToStanfordTree(Parse root) {
+    private Tree convertOpenNlpToStanfordTree(Parse root, Queue<HasWord> leavesQ) {
         // convert the root
-        Tree rootNode = convertParseToTree(root);
+        Tree rootNode = convertOpenNlpToStanfordNode(root, leavesQ);
         // prepare a child node for every child
         Tree[] children = new Tree[root.getChildCount()];
         for (int i = 0; i < root.getChildren().length; i++) {
-            children[i] = convertOpenNlpToStanfordTree(root.getChildren()[i]);
+            children[i] = convertOpenNlpToStanfordTree(root.getChildren()[i], leavesQ);
         }
         rootNode.setChildren(children);
         return rootNode;
     }
 
-    private LabeledScoredTreeNode convertParseToTree(Parse p) {
+    private LabeledScoredTreeNode convertOpenNlpToStanfordNode(Parse p, Queue<HasWord> leavesQ) {
         CoreLabel newLabel = new CoreLabel();
         if (p.getChildCount() > 0) {
             // inner node
@@ -74,13 +71,18 @@ public class OpenNlpParserAdapter extends ParserAdapter {
             newLabel.setValue(p.getType());
         } else {
             // leaf
-            newLabel.setValue(p.getCoveredText());
-            newLabel.setWord(p.getCoveredText());
-            newLabel.setOriginalText(p.getCoveredText());
-            newLabel.setBeginPosition(p.getSpan().getStart());
-            newLabel.setEndPosition(p.getSpan().getEnd());
-            newLabel.setBefore(" ");
-            newLabel.setAfter(" ");
+            HasWord hasWord = leavesQ.remove();
+            if (hasWord instanceof CoreLabel) {
+                newLabel = (CoreLabel) hasWord;
+            } else {
+                newLabel.setValue(p.getCoveredText());
+                newLabel.setWord(p.getCoveredText());
+                newLabel.setOriginalText(p.getCoveredText());
+                newLabel.setBeginPosition(p.getSpan().getStart());
+                newLabel.setEndPosition(p.getSpan().getEnd());
+                newLabel.setBefore(" ");
+                newLabel.setAfter(" ");
+            }
         }
         return new LabeledScoredTreeNode(newLabel);
     }
