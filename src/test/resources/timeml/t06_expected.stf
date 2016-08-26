@@ -1,5 +1,5 @@
-ei1,came
-ei2,got
+ei1,came,OCCURRENCE
+ei2,got,OCCURRENCE
 t0,2002-07-10
 t1,P5D
 l1,ei1,t1,BEFORE

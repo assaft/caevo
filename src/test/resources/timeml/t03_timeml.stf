@@ -1,5 +1,5 @@
-ei1,earthquake,occurrence
-ei2,struck,occurrence
+ei1,earthquake,OCCURRENCE
+ei2,struck,OCCURRENCE
 t0,2002-07-13
 t1,P3Y
 t2,2002-07-12

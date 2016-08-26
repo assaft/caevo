@@ -1,5 +1,5 @@
-ei1,kicked,occurrence
-ei2,rose,state
+ei1,kicked,OCCURRENCE
+ei2,rose,STATE
 t0,2002-07-10
 l1,ei1,ei2,BEFORE
 l2,ei1,t0,BEFORE

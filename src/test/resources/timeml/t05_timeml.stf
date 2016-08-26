@@ -1,4 +1,4 @@
-ei1,left,occurrence
-ei2,attack,occurrence
+ei1,left,OCCURRENCE
+ei2,attack,OCCURRENCE
 t1,P2D
 l1,ei1,ei2,t1,BEFORE

@@ -1,5 +1,5 @@
-ei1,secured,state
-ei2,peace,state
+ei1,secured,STATE
+ei2,peace,STATE
 t0,2002-07-10
 l1,ei1,ei2,DURING
 l2,ei1,t0,BEFORE

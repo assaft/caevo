@@ -1,5 +1,5 @@
-ei1,caused,occurrence
-ei2,fire,state
+ei1,caused,OCCURRENCE
+ei2,fire,STATE
 t0,2002-07-10
 l1,ei1,ei2,BEFORE
 l2,ei1,t0,BEFORE
