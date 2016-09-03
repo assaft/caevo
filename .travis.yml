@@ -20,3 +20,10 @@ script: mvn clean install
 cache:
   directories:
   - $HOME/.m2
+
+notifications:
+  email:
+    recipients:
+      - ymishory@gmail.com
+      - assaf_t@yahoo.com
+
