@@ -14,7 +14,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -43,6 +45,28 @@ class CaevoResult {
     					"tlinks:  " + tlinks.toString();
     }
 
+    public String toSTF() {
+    	StringBuilder buffer = new StringBuilder();
+    	
+    	Map<String,String> sortedEvents = new TreeMap<String,String>(events);
+    	for (Entry<String, String> entry : sortedEvents.entrySet()) {
+    		buffer.append(entry.getKey() + "," + entry.getValue()+ "\n");
+    	}
+    	
+    	Map<String,String> sortedTimes = new TreeMap<String,String>(timexes);
+    	for (Entry<String, String> entry : sortedTimes.entrySet()) {
+    		buffer.append(entry.getKey() + "," + entry.getValue() + "\n");
+    	}
+
+    	Map<String,TestTLink> sortedLinks = new TreeMap<String,TestTLink>(tlinks);
+    	for (Entry<String, TestTLink> entry : sortedLinks.entrySet()) {
+    		buffer.append(entry.getKey() + "," + entry.getValue().toSTF()+ "\n");
+    	}
+    	
+    	return buffer.toString();
+    }
+    
+    
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -352,6 +376,10 @@ class CaevoResult {
         public String toString() {
         	return id1 + " " + relation + " " + id2 + (id3!=null ? "by " + id3 : "");
         }
+        
+        public String toSTF() {
+        	return id1 + "," + id2 + "," + (id3!=null ? id3 + "," : "") + relation;
+        }        
         
         @Override
         public boolean equals(Object o) {
