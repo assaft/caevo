@@ -1,6 +1,6 @@
-ei1,rains,state
-ei2,caused,state
-ei3,flooding,state
+ei1,rains,STATE
+ei2,caused,STATE
+ei3,flooding,STATE
 t0,2002-07-10
 l1,ei1,ei3,BEFORE
 l2,ei1,ei2,SIMULTANEOUS

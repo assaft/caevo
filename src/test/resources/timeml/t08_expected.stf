@@ -1,5 +1,5 @@
-ei1,expect
-ei2,sent
+ei1,expect,STATE
+ei2,sent,OCCURRENCE
 t0,2002-07-10
 t1,PT2H
 l1,ei2,t1,BEFORE

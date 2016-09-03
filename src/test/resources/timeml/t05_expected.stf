@@ -1,5 +1,5 @@
-ei1,left
-ei2,attack
+ei1,left,OCCURRENCE
+ei2,attack,OCCURRENCE
 t0,2002-07-10
 t1,P2D
 l1,ei1,t1,BEFORE

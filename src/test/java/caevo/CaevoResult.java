@@ -17,6 +17,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+import caevo.tlink.TLink;
+import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -25,16 +30,9 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-import caevo.tlink.TLink;
-
 class CaevoResult {
 
-    Map<String, String> events = new HashMap<String, String>();
+    Map<String, TestEvent> events = new HashMap<String, TestEvent>();
     Map<String, String> timexes = new HashMap<String, String>();
     Map<String, TestTLink> tlinks = new HashMap<String, TestTLink>();
 
@@ -48,8 +46,8 @@ class CaevoResult {
     public String toSTF() {
     	StringBuilder buffer = new StringBuilder();
     	
-    	Map<String,String> sortedEvents = new TreeMap<String,String>(events);
-    	for (Entry<String, String> entry : sortedEvents.entrySet()) {
+    	Map<String,TestEvent> sortedEvents = new TreeMap<String,TestEvent>(events);
+    	for (Entry<String, TestEvent> entry : sortedEvents.entrySet()) {
     		buffer.append(entry.getKey() + "," + entry.getValue()+ "\n");
     	}
     	
@@ -120,9 +118,14 @@ class CaevoResult {
     		case 'e':
     			String eid = st[0].trim();
     			String etext = st[1].trim();
-    			if (!events.containsKey(eid)) {
-    				events.put(eid, etext);
-    			} else {
+                TextEvent.Class eClass = null;
+                if (st.length > 2) {
+                    String eClassName = st[2].trim();
+                    eClass = TextEvent.Class.valueOf(eClassName);
+                }
+                if (!events.containsKey(eid)) {
+                    events.put(eid, new TestEvent(eid, etext, eClass));
+                } else {
     				throw new RuntimeException("Event " + eid + " is defined twice");
     			}
     			break;
@@ -185,7 +188,8 @@ class CaevoResult {
             NamedNodeMap attributes = node.getAttributes();
             String eventId = attributes.getNamedItem("eiid").getTextContent();
             String eventString = attributes.getNamedItem("string").getTextContent();
-            events.put(eventId, eventString);
+            TextEvent.Class eventClass = TextEvent.Class.valueOf(attributes.getNamedItem("class").getTextContent());
+            events.put(eventId, new TestEvent(eventId, eventString, eventClass));
         }
 
         nodeList = (NodeList) timexExpression.evaluate(doc, XPathConstants.NODESET);
@@ -357,7 +361,48 @@ class CaevoResult {
     			measure(gold.timexes.keySet(),expected.timexes.keySet(), timeMapping),
     			measure(gold.tlinks.keySet(), expected.tlinks.keySet(), 	linkMapping));
     }
-    
+
+    private static class TestEvent {
+        String id;
+        String value;
+        TextEvent.Class clasS;
+
+        public TestEvent(String id, String value, TextEvent.Class clasS) {
+            this.id = id;
+            this.value = value;
+            this.clasS = clasS;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            TestEvent testEvent = (TestEvent) o;
+
+            if (clasS != testEvent.clasS) return false;
+            if (!id.equals(testEvent.id)) return false;
+            if (!value.equals(testEvent.value)) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = id.hashCode();
+            result = 31 * result + value.hashCode();
+            result = 31 * result + (clasS != null ? clasS.hashCode() : 0);
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            String str = id + "," + value;
+            if (clasS != null) str += "," + clasS;
+            return str;
+        }
+    }
+
     private static class TestTLink {
     	
     	public TestTLink(String event1, String event2, String magnitude, String relation) {
