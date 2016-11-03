@@ -189,7 +189,7 @@ public class TimexClassifier {
      * @param docDate   A string version of the document's creation time, e.g., "19980807"
      * @return A list of Timex objects with resolved time values.
      */
-    private List<Timex> markupTimex3(List<CoreLabel> words, int idcounter, String docDate) {
+    public List<Timex> markupTimex3(List<CoreLabel> words, int idcounter, String docDate) {
         // Load the pipeline of annotations needed for Timex markup.
         if (timexPipeline == null)
             timexPipeline = getPipeline(true);
@@ -235,6 +235,7 @@ public class TimexClassifier {
             List<? extends CoreMap> children = label.get(TimeExpression.ChildrenAnnotation.class);
             if (children.size() == 4 && children.get(0) instanceof CoreLabel && children.get(2) instanceof CoreLabel) {
                 // fits the pattern of "from... to..." or "between... and..."
+            		System.out.println("REMOVING SUTIME TIMEX: " + children);
                 rejects.add(label);
             }
         }
@@ -243,13 +244,23 @@ public class TimexClassifier {
         for (CoreMap label : labels) {
             List<? extends CoreMap> children = label.get(TimeExpression.ChildrenAnnotation.class);
             for (CoreMap child : children) {
-                if (labels.contains(child) && !rejects.contains(child)) {
+            		if (labels.contains(child) && !rejects.contains(child)) {
                     rejects.add(child);
+
+                    /*
+                    edu.stanford.nlp.time.Timex stanfordTimex = child.get(TimeAnnotations.TimexAnnotation.class);
+                    Element stanfordElement = stanfordTimex.toXmlElement();
+                    Timex newtimex = new Timex();
+                    newtimex.setType(Timex.Type.valueOf(stanfordElement.getAttribute("type")));
+                    newtimex.setValue(stanfordElement.getAttribute("value"));
+                    newtimex.setText(stanfordElement.getTextContent());
+                		System.out.println("REMOVING SUTIME TIMEX: [" + child + "] from: " + labels + "(" + newtimex + ")");
+                		*/
                 }
             }
         }
 
-        labels.removeAll(rejects);
+       labels.removeAll(rejects);
 
 
         for (CoreMap label : labels) {

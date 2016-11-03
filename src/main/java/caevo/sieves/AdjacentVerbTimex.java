@@ -1,6 +1,7 @@
 package caevo.sieves;
 
 import caevo.*;
+import caevo.time.TimexCoref;
 import caevo.tlink.EventTimeLink;
 import caevo.tlink.TLink;
 import caevo.util.CaevoProperties;
@@ -384,7 +385,8 @@ public class AdjacentVerbTimex implements Sieve {
                         token.word().equalsIgnoreCase("beginning")) {
                     tlink = new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.BEGUN_BY);
                 } else if (token.word().equalsIgnoreCase("to") ||
-                        token.word().equalsIgnoreCase("until") ||
+                				token.word().equalsIgnoreCase("by") ||
+                				token.word().equalsIgnoreCase("until") ||
                         token.word().equalsIgnoreCase("through")) {
                     tlink = new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.ENDED_BY);
                 } else if (token.word().equalsIgnoreCase("after") ||
@@ -415,7 +417,13 @@ public class AdjacentVerbTimex implements Sieve {
 
     private CoreLabel tokenPrecedingTimex(SieveSentence sent, Timex timex) {
         // remember, tokenOffset is 1-based!
-        return sent.tokens().get(timex.getTokenOffset() - 2);
+        int index;
+    		if (timex instanceof TimexCoref) {
+        		index = timex.getTokenOffset() - ((TimexCoref)timex).getLeftSpanLength() - 2;
+        } else {
+          index = timex.getTokenOffset() - 2;
+        }
+        return sent.tokens().get(index);
     }
 
     private CoreLabel tokenFollowingTimex(SieveSentence sent, Timex timex) {

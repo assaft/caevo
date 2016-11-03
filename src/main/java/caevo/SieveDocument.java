@@ -5,10 +5,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
 
@@ -16,14 +18,27 @@ import org.jdom.Element;
 import org.jdom.Namespace;
 
 import caevo.Timex.DocumentFunction;
+import caevo.time.CorefParser;
+import caevo.time.CorefParser.CorefHandler;
+import caevo.time.TimexCoref;
+import caevo.time.TimexCorefResolver;
 import caevo.tlink.EventEventLink;
 import caevo.tlink.EventTimeLink;
 import caevo.tlink.TLink;
 import caevo.tlink.TimeTimeLink;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.pipeline.Annotation;
+import edu.stanford.nlp.pipeline.AnnotationPipeline;
+import edu.stanford.nlp.pipeline.POSTaggerAnnotator;
+import edu.stanford.nlp.pipeline.TokenizerAnnotator;
+import edu.stanford.nlp.pipeline.WordsToSentencesAnnotator;
+import edu.stanford.nlp.time.SUTimeMain;
+import edu.stanford.nlp.time.TimeAnnotations;
+import edu.stanford.nlp.time.TimeAnnotator;
 import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.trees.TypedDependency;
+import edu.stanford.nlp.util.CoreMap;
 
 /**
  * Timebank Corpus file that stores in an easier to read format, all the sentences and docs
@@ -602,6 +617,159 @@ public class SieveDocument {
   		writer.write("\n</TimeML>");
   		writer.close();
   	} catch( Exception ex ) { ex.printStackTrace(); }
+  }
+  
+  private static List<String> articles = Arrays.asList("the","a","that","this");
+  
+  private boolean isArticle(CoreLabel token) {
+  	return articles.contains(token.word().toLowerCase());
+  }
+  
+  public void resolveTimexCoref() {
+    TimexCorefResolver resolver = new TimexCorefResolver(sentences);
+
+    TimexClassifier timexClassifer = new TimexClassifier();
+
+    /*
+    Properties props = new Properties();
+    props.setProperty("sutime.includeRange", "true");
+    props.setProperty("sutime.includeNested", "true");
+    props.setProperty("sutime.markTimeRanges", "true");
+    AnnotationPipeline timexPipeline = new AnnotationPipeline();
+    timexPipeline.addAnnotator(new TokenizerAnnotator(false));
+    timexPipeline.addAnnotator(new WordsToSentencesAnnotator(false));
+    timexPipeline.addAnnotator(new POSTaggerAnnotator(false));
+    timexPipeline.addAnnotator(new TimeAnnotator("sutime", props));*/
+    
+    // go over the sentences
+  	for (SieveSentence sent : sentences) {
+    	
+  			// go over all timexes 
+      	for (int timexId = 0 ; timexId<sent.timexes().size() ; timexId++) {
+      			
+      			Timex timex = sent.timexes().get(timexId);
+      			
+      			CorefParser corefParser = new CorefParser();
+      			CorefHandler corefHandler = corefParser.parse(timex.getText());
+      			if (corefHandler!=null) {
+							// resolve the co-reference
+							String refTid = resolver.resolve(timex.getTid());
+							
+							// get the referenced timex 
+							Timex refTimex = getTimexByTid(refTid);
+
+	      			Timex newTimex = corefHandler.apply(timex, refTimex);
+	      			
+	      			System.out.println(newTimex);
+      			}
+      			
+      			
+      			
+      			// We distinguish between two cases: 
+      			// (1) - cases where SUTime did not identify that the timex refers to another 
+      			// one. For example, In *the same year*...  or  In *that year* .... SUTime
+      			// only sees a duration - 'year'. It missed the fact that the timexs refer
+      			// to other dates. This is actually a bug. We handle these cases by doing the 
+      			// calculation manually.
+
+      			// (2) - cases where SUTime identified that the timex refers to another date. 
+      			// For example, *Two years later*,...  or  *The next year*,....
+      			// The problem here is that SUTime resolves the coref relative to the DCT, and
+      			// this is most often wrong. For example, if we have a sentence like: 
+      			// "In 1937,.... *The year later*,.." we want to interpret "the year later" 
+      			// relative to 1937, not relative to the DCT. 
+      			// Our solution is to re-run SUTIme on the timex, but giving it a new DCT which 
+      			// is the timex to which we want the reference to be (e.g. 1937).
+      			// However, note that SUTime is limited to DCTs that are full dates. This means:
+      			// (a) - for cases where we want to refer to a year like 1937 we need to fill 
+      			// dummy month and day, (i.e. to turn 1937 into 1937-1-1). 
+      			// (b) - we can't apply this approach to times - the DCTs are dates. So things
+      			// like "Two hours later" cannot be resolved. 
+      			// Why we still want to use SUTime and do not do all of this co-ref resolving 
+      			// automatically? basically just because there are cases we won't cover easily.
+      			// For example - "In September next year" - SUTime can handle such things.
+
+      			
+      			// case 1 - where SUTime did not identify a co-ref timex, such as: 
+      			// In *the same year*,... - but it did identify that there is a 
+      			// duration element (e.g. year). We verify that it is preceded
+      			// by a co-ref word (e.g. same) and process it accordingly
+      			if (timex.getType().equals(Timex.Type.DURATION)) {
+      					// get the preceding token
+      					CoreLabel token = sent.tokens().get(timex.getTokenOffset() - 2);
+      					
+      					// verify the token is a coref word
+      					String wordUpperCase = token.word().toUpperCase();
+      					if (CorefWord.isCorefWord(wordUpperCase)) {
+
+      							// get the coref word
+      							CorefWord corefWord = CorefWord.valueOf(wordUpperCase);
+      							
+      							// resolve the co-reference
+      							String refTid = resolver.resolve(timex.getTid());
+      							
+      							// get the referenced timex 
+      							Timex timexRef = getTimexByTid(refTid);
+      							
+      							// find the length of the coref phrase (span to the left of the coref word)
+      							int spanLength = 1;
+      							boolean stop = false;
+      							while(timex.getTokenOffset()-2-spanLength>=0 && !stop) {
+      								token = sent.tokens().get(timex.getTokenOffset()-2-spanLength);
+      								if (isArticle(token)) {
+      									spanLength++;
+      								} else {
+      									stop = true;
+      								}
+      							}
+
+      							// create new timex
+      							Timex newTimex = TimexCoref.of(timex, timexRef, corefWord, spanLength, true);
+      							
+      							//update list and map
+      							sent.timexes().set(timexId, newTimex);
+      							tidToTimex.put(timex.getTid(), newTimex);
+
+      							/*
+      							// delete the coref word and possibly the determiner before it too 
+      							sent.tokens().remove(timex.getTokenOffset() - 2);
+      							while(timex.getTokenOffset()-3>=0) {
+      								token = sent.tokens().get(timex.getTokenOffset() - 3);
+      								if (isArticle(token)) {
+      									sent.tokens().remove(timex.getTokenOffset() - 2);
+      								}
+      							}*/
+      					}
+      					
+      					
+      			// case 2 - where SUTime resolved a co-ref timex but we want to update it
+      			// because SUTime resolved the co-ref relative to the DCT. This update is 
+      			// needed for cases like "In 1939,.... Two years later,". We want "two years 
+      			// later" to co-refer to 1939, not to the DCT.
+      			} else {
+							// resolve the co-reference
+							String refTid = resolver.resolve(timex.getTid());
+							
+							// get the referenced timex 
+							Timex timexRef = getTimexByTid(refTid);
+
+							// prepare inputs for annotation
+							int tid = Integer.parseInt(timex.getTid().substring(1));
+							String timexRefValue = timexRef.getValue();
+							List<CoreLabel> words = new ArrayList<CoreLabel>(sent.tokens().subList(timex.getTokenOffset()-1, timex.getTokenOffset()-1+timex.getTokenLength()));
+
+							// annotate
+							List<Timex> newTimexs = timexClassifer.markupTimex3(words, tid, timexRefValue);
+							
+							if (newTimexs.size()>0) {
+								// update list and map
+								sent.timexes().set(timexId, newTimexs.get(0));
+								tidToTimex.put(timex.getTid(), newTimexs.get(0));
+							}
+
+      			}
+      	}
+  	}
   }
 
 

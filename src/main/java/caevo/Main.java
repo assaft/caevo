@@ -233,6 +233,17 @@ public class Main {
 	
 	/**
 	 * Assumes the global SieveDocuments is initialized and loaded.
+	 * Resolve co-referring timexes on the given documents .
+	 */
+	private void resolveTimexCoref(SieveDocuments thedocs) {
+		SieveDocuments docs = getDataset(dataset, thedocs);
+		for( SieveDocument doc : thedocs.getDocuments() ) {
+			doc.resolveTimexCoref();
+		}
+	}
+	
+	/**
+	 * Assumes the global SieveDocuments is initialized and loaded.
 	 * Run all sieves!! On all documents!!
 	 */
 	public void runSieves() {
@@ -758,6 +769,7 @@ public class Main {
 			}
 		}
 		markupTimexes(docs);
+		resolveTimexCoref(docs);
 		runSieves(docs);
 	}
 	

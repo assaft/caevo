@@ -30,10 +30,12 @@ public class Timex {
   public static final String TEXT_ATT = "text";
   public static final String OFFSET_ATT = "offset";
   public static final String LENGTH_ATT = "length";
+  public static final String TEMPOP_ATT = "temporalOperation";
   	
   public enum Type { DATE, TIME, DURATION, SET };
   public enum DocumentFunction { CREATION_TIME, EXPIRATION_TIME, MODIFICATION_TIME, PUBLICATION_TIME, RELEASE_TIME, RECEPTION_TIME, NONE };
   public enum Mod { BEFORE, AFTER, ON_OR_BEFORE, ON_OR_AFTER, LESS_THAN, MORE_THAN, EQUAL_OR_LESS, EQUAL_OR_MORE, START, MID, END, APPROX };
+
   
   private String text;
   private int tokenOffset;
@@ -48,6 +50,7 @@ public class Timex {
   private boolean temporalFunction = false;
   private String preposition; // feature not in Timebank
   private Pair<Calendar, Calendar> timeRange;
+  //private String temporalOperation; 
   
   public Timex() {
   
@@ -68,6 +71,7 @@ public class Timex {
     this.mod = timex.getMod(); 
     this.documentFunction = timex.getDocumentFunction();
     this.temporalFunction = timex.getTemporalFunction();
+    //this.temporalOperation = timex.getTemporalOperation();
   }
   
   /**
@@ -85,6 +89,7 @@ public class Timex {
     this.mod = timex.getMod(); 
     this.documentFunction = timex.getDocumentFunction();
     this.temporalFunction = timex.getTemporalFunction();
+    //this.temporalOperation = timex.getTemporalOperation();
   }
   /**
    * Copy Constructor with new value specified
@@ -112,6 +117,8 @@ public class Timex {
     	this.documentFunction = DocumentFunction.valueOf(docFunStr);
     
     this.temporalFunction = el.getAttributeValue(Timex.TEMPFUNC_ATT).equalsIgnoreCase("true");
+    
+    //this.temporalOperation = el.getAttributeValue(Timex.TEMPOP_ATT);
   }
 
   
@@ -135,7 +142,8 @@ public class Timex {
     	this.documentFunction = DocumentFunction.valueOf(docFunStr);
     
     this.temporalFunction = el.getAttribute(Timex.TEMPFUNC_ATT).equalsIgnoreCase("true");
-
+    //this.temporalOperation = el.getAttribute(Timex.TEMPOP_ATT);
+    
     String text = el.getAttribute(Timex.TEXT_ATT); 
     if( text != null && text.length() > 0 ) 
     	this.text = text;
@@ -186,6 +194,11 @@ public class Timex {
   public void setDocumentFunction(DocumentFunction func) { 
   	this.documentFunction = func; 
   }
+  
+  /*
+  public void setTemporalOperation(String tempOp) {
+  	this.temporalOperation = tempOp;
+  }*/
 
   public int getTokenOffset() { return this.tokenOffset; }
   public int getTokenLength() { return this.tokenLength; }
@@ -198,6 +211,7 @@ public class Timex {
   public String getText() { return this.text; }
   public DocumentFunction getDocumentFunction() { return this.documentFunction; }
   public boolean getTemporalFunction() { return this.temporalFunction; }
+  //public String getTemporalOperation() { return this.temporalOperation; }
   public String getPrep() { return this.preposition; }
   
   public Pair<Calendar, Calendar> getRange() {
