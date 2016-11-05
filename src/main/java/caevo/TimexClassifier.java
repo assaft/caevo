@@ -195,7 +195,7 @@ public class TimexClassifier {
             timexPipeline = getPipeline(true);
 
         // Extract TIMEX3 entities.
-        Annotation annotation = SUTimeMain.textToAnnotation(timexPipeline, buildStringFromCoreLabels(words, 0, words.size()), docDate);
+        Annotation annotation = SUTimeMain.textToAnnotation(timexPipeline, buildStringFromCoreLabels(words, 0, words.size()), "");
 
 /*    // Print TIMEX3 results.
     List<CoreLabel> sutimeTokens = annotation.get(CoreAnnotations.TokensAnnotation.class);

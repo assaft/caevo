@@ -19,4 +19,16 @@ public enum TimeUnit {
 		A visitSecond();
 	}
 
+	public abstract static class DateVisitor<A> implements Visitor<A>{
+		@Override	public A visitHour() {return null;}
+		@Override public A visitMinute() {return null;}
+		@Override public A visitSecond() {return null;}
+	}
+
+	public abstract static class TimeVisitor<A> implements Visitor<A>{
+		@Override	public A visitYear() {return null;}
+		@Override public A visitMonth() {return null;}
+		@Override public A visitDay() {return null;}
+	}
+	
 }

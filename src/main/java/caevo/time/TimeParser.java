@@ -1,11 +1,13 @@
 package caevo.time;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TimeParser {
 
-	private static final String DATETIME_REGEX_STR = "^(?:(\\d{4})(?:\\-?(\\d{2}))?(?:\\-?(\\d{2}))?|(?:(T?\\d{2})(?:\\:?(\\d{2}))?(?:\\:?(\\d{2}))?))+$";
+	private static final String DATETIME_REGEX_STR = "^(?:(\\d{4}|XXXX)(?:\\-?(\\d{2}))?(?:\\-?(\\d{2}))?|(?:(T?\\d{2})(?:\\:?(\\d{2}))?(?:\\:?(\\d{2}))?))+$";
 	private static final Pattern DATETIME_REGEX = Pattern.compile(DATETIME_REGEX_STR);
 
 	private static final Pattern periodPattern = Pattern.compile("P(\\d+)([YMD])");
@@ -18,43 +20,23 @@ public class TimeParser {
 
 		Matcher matcher = DATETIME_REGEX.matcher(s);
 		if (matcher.find()) {
-			int year = -1,  month = -1, day = -1;
-			int hour = -1, minute = -1, second = -1;
-
-			if (matcher.group(1)!=null && matcher.group(2)!=null && 
-					matcher.group(3)!=null) {
-				year = Integer.parseInt(matcher.group(1));
-				month = Integer.parseInt(matcher.group(2));
-				day = Integer.parseInt(matcher.group(3));
-				format = Format.DATE;
-			} else if (matcher.group(1)!=null && matcher.group(2)!=null) {
-				year = Integer.parseInt(matcher.group(1));
-				month = Integer.parseInt(matcher.group(2));
-				format = Format.YEARMONTH;
-			} else if (matcher.group(1)!=null) {
-				year = Integer.parseInt(matcher.group(1));
-				format = Format.YEAR;
+			Map<TimeUnit,Integer> values = new HashMap<TimeUnit, Integer>();
+			for (int i=0, length = TimeUnit.values().length ; i<length ; i++) {
+				int gId = i+1;
+				if (matcher.group(gId)!=null) {
+					if (!matcher.group(gId).equals("XXXX")) {
+						TimeUnit timeUnit = TimeUnit.values()[i]; 
+						String value = matcher.group(gId);
+						if (timeUnit==TimeUnit.HOUR) {
+							value = value.substring(1);
+						}
+						values.put(timeUnit,Integer.parseInt(value));
+					}
+				}
 			}
-
-			if (matcher.group(4)!=null && matcher.group(5)!=null && 
-					matcher.group(6)!=null) {
-				hour = Integer.parseInt(matcher.group(4).substring(1));
-				minute = Integer.parseInt(matcher.group(5));
-				second = Integer.parseInt(matcher.group(6));
-				format = format==Format.DATE ? Format.DATETIME : Format.TIME;
-			} else if (matcher.group(4)!=null && matcher.group(5)!=null) {
-				hour = Integer.parseInt(matcher.group(4).substring(1));
-				minute = Integer.parseInt(matcher.group(5));
-				format = Format.HOURMINUTE;
-			} else if (matcher.group(4)!=null) {
-				hour = Integer.parseInt(matcher.group(4).substring(1));
-				format = Format.YEAR;
-			} 
-
-			if (format!=null) {
-				ret = new DateTimeData(year, month, day, hour, minute, second, format);
+			if (Format.exists(values.keySet())) {
+				ret = new DateTimeData(values);
 			}
-
 		} else {
 			int quantity;
 			matcher = periodPattern.matcher(s);
@@ -77,8 +59,10 @@ public class TimeParser {
 					} else if (matcher.group(2).equals("S")) {
 						format = Format.SECONDS;
 					}
+					quantity = Integer.parseInt(matcher.group(1));
+				} else {
+					throw new RuntimeException("Failed to parse: " + s);
 				}
-				quantity = Integer.parseInt(matcher.group(1));
 			}
 
 			if (format!=null) {
@@ -88,7 +72,7 @@ public class TimeParser {
 		
 		return ret;
 	}
-
+	
 }
 
 

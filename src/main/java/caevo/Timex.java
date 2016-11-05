@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 
 import org.jdom.Namespace;
 
+import caevo.Timex.Type;
 import caevo.util.Pair;
 import caevo.util.TimeValueParser;
 
@@ -71,26 +72,42 @@ public class Timex {
     this.mod = timex.getMod(); 
     this.documentFunction = timex.getDocumentFunction();
     this.temporalFunction = timex.getTemporalFunction();
-    //this.temporalOperation = timex.getTemporalOperation();
   }
   
   /**
-   * Copy Constructor with new value specified
+   * Copy Constructor with new text specified
    * @param timex
    */
-  public Timex(Timex timex, String newVal) {
+  public Timex(Timex timex, String newText, int newTokenOffset, int newTokenLength) {
   	this.tid = timex.getTid();
-    this.text = timex.getText();
-    this.tokenOffset = timex.getTokenOffset();
-    this.tokenLength = timex.getTokenLength();
+    this.text = newText;
+    this.tokenOffset = newTokenOffset;
+    this.tokenLength = newTokenLength;
     this.anchorTid = timex.getAnchorTid();
     this.type = timex.getType();
     this.value = timex.getValue();
     this.mod = timex.getMod(); 
     this.documentFunction = timex.getDocumentFunction();
     this.temporalFunction = timex.getTemporalFunction();
-    //this.temporalOperation = timex.getTemporalOperation();
   }
+
+  /**
+   * Copy Constructor with new text specified
+   * @param timex
+   */
+  public Timex(Timex timex, String newValue, Type newType) {
+  	this.tid = timex.getTid();
+    this.text = timex.getText();
+    this.tokenOffset = timex.getTokenOffset();
+    this.tokenLength = timex.getTokenLength();
+    this.anchorTid = timex.getAnchorTid();
+    this.type = newType;
+    this.value = newValue;
+    this.mod = timex.getMod(); 
+    this.documentFunction = timex.getDocumentFunction();
+    this.temporalFunction = timex.getTemporalFunction();
+  }
+  
   /**
    * Copy Constructor with new value specified
    * @param timex
@@ -121,8 +138,7 @@ public class Timex {
     //this.temporalOperation = el.getAttributeValue(Timex.TEMPOP_ATT);
   }
 
-  
-  //<TIMEX3 mod="APPROX" endPoint="t42" tid="t39" temporalFunction="false" type="DURATION" functionInDocument="NONE" value="P2Y" >
+	//<TIMEX3 mod="APPROX" endPoint="t42" tid="t39" temporalFunction="false" type="DURATION" functionInDocument="NONE" value="P2Y" >
   public void saveAttributes(org.w3c.dom.Element el) {
     this.tid = el.getAttribute(Timex.TID_ATT);
     this.anchorTid = el.getAttribute(Timex.ANCHORTID_ATT);

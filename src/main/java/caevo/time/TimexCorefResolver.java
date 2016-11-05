@@ -168,8 +168,8 @@ public class TimexCorefResolver {
 		}
 	}
 
-	public String resolve(String tid) {
-		return timexRefMap.get(tid).get(0);
+	public List<String> resolve(String tid) {
+		return timexRefMap.get(tid);
 	}
 
 	// validateTime ensures that timex value meets criteria

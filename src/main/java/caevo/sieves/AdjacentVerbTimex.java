@@ -1,7 +1,16 @@
 package caevo.sieves;
 
-import caevo.*;
-import caevo.time.TimexCoref;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import caevo.SieveDocument;
+import caevo.SieveDocuments;
+import caevo.SieveSentence;
+import caevo.TextEvent;
+import caevo.Timex;
 import caevo.tlink.EventTimeLink;
 import caevo.tlink.TLink;
 import caevo.util.CaevoProperties;
@@ -14,12 +23,6 @@ import edu.stanford.nlp.trees.GrammaticalRelation;
 import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.trees.TypedDependency;
 import edu.stanford.nlp.util.ArrayUtils;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * AdjacentVerbTimex intends to classify event/time pairs from the same sentence
@@ -417,13 +420,7 @@ public class AdjacentVerbTimex implements Sieve {
 
     private CoreLabel tokenPrecedingTimex(SieveSentence sent, Timex timex) {
         // remember, tokenOffset is 1-based!
-        int index;
-    		if (timex instanceof TimexCoref) {
-        		index = timex.getTokenOffset() - ((TimexCoref)timex).getLeftSpanLength() - 2;
-        } else {
-          index = timex.getTokenOffset() - 2;
-        }
-        return sent.tokens().get(index);
+        return sent.tokens().get(timex.getTokenOffset() - 2);
     }
 
     private CoreLabel tokenFollowingTimex(SieveSentence sent, Timex timex) {

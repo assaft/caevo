@@ -9,6 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import caevo.Timex;
+import caevo.Timex.Type;
 
 public class CorefParser {
 
@@ -21,6 +22,9 @@ public class CorefParser {
 	// next hour
 	// previous hour
 
+	// (the) same/next/previous/last/coming/forthcoming
+	// (that|this) [same] 
+	
 	// Pattern 2 - "(the) next day" and "previous day"
 	// yesterday
 	// tomorrow
@@ -29,218 +33,327 @@ public class CorefParser {
 
 	// Pattern 4 - {a,one} {year,month,day,hour,minute,second} {before,ago,after,later}
 
-	private static final String pattern1;
-	private static final String pattern2;
-	private static final String pattern3;
-	private static final String pattern4;
-	
-	private enum Direction {NONE,POS,NEG}
-	
 	private enum PreUnitModifier {
-		SAME 				(Direction.NONE),
-		THIS 				(Direction.NONE),
-		THAT 				(Direction.NONE),
-		NEXT 				(Direction.POS),
-		COMING 			(Direction.POS),
-		FORTHCOMING (Direction.POS),
-		PREVIOUS 		(Direction.NEG),
-		LAST 				(Direction.NEG);
-		
-		private final Direction direction;
-		PreUnitModifier(Direction direction) {
-			this.direction = direction;
+		SAME 				(TimeOperation.GET),
+		NEXT 				(TimeOperation.PLUS),
+		COMING 			(TimeOperation.PLUS),
+		FORTHCOMING (TimeOperation.PLUS),
+		PREVIOUS 		(TimeOperation.MINUS),
+		LAST 				(TimeOperation.MINUS);
+
+		private final TimeOperation operation;
+
+		PreUnitModifier(TimeOperation operation) {
+			this.operation = operation;
 		}
-		
-		public Direction getDirection() {
-			return direction;
+
+		public TimeOperation getOperation() {
+			return operation;
 		}
-	
+
 	}
+
+	private enum PreSelfUnitModifier {
+		THIS 				(TimeOperation.GET),
+		THAT 				(TimeOperation.GET);
+		
+		private final TimeOperation operation;
+
+		PreSelfUnitModifier(TimeOperation operation) {
+			this.operation = operation;
+		}
+
+		public TimeOperation getOperation() {
+			return operation;
+		}
+		
+	}
+	
 	private enum PostUnitModifier {
-		BEFORE 	(Direction.NEG),
-		AGO 		(Direction.NEG),
-		AFTER 	(Direction.POS), 
-		LATER		(Direction.POS);
-		
-		private final Direction direction;
-		PostUnitModifier(Direction direction) {
-			this.direction = direction;
-		}
-		
-		public Direction getDirection() {
-			return direction;
-		}
-		
-	}
-	
-	private static final List<String> preUnitModifiers = 
-			Arrays.asList("same","next","previous","last","coming","forthcoming","this","that");
+		BEFORE 	(TimeOperation.MINUS),
+		AGO 		(TimeOperation.MINUS),
+		AFTER 	(TimeOperation.PLUS), 
+		LATER		(TimeOperation.PLUS);
 
-	private static List<String> postUnitModifiers = 
-			Arrays.asList("before","ago","after","later");
-
-	private static String listToRegExChoice(List<String> list) {
-		StringBuilder buffer = new StringBuilder();
-		buffer.append("(");
-		for (String s : list) {
-			buffer.append(s);
-			buffer.append("|");
-		}
-		buffer.setCharAt(buffer.length()-1, ')');
-		return buffer.toString();
-	}
-
-	private static List<CorefPattern> patterns;
-	
-	static {
-		List<TimeUnit> timeUnitList = Arrays.asList(TimeUnit.values());
-		List<String> timeUnitSingularStrList = new ArrayList<String>();
-		List<String> timeUnitPluralStrList = new ArrayList<String>();
-		for (TimeUnit timeUnit : timeUnitList) {
-			timeUnitSingularStrList.add(timeUnit.toString());
-			timeUnitPluralStrList.add(timeUnit.toString()+"s");			
+		private final TimeOperation operation;
+		
+		PostUnitModifier(TimeOperation operation) {
+			this.operation = operation;
 		}
 
-		String timeUnitsSingularChoice = listToRegExChoice(timeUnitSingularStrList);
-		String timeUnitsPluralChoice = listToRegExChoice(timeUnitPluralStrList);
-
-		String preUnitModifiersChoice = listToRegExChoice(preUnitModifiers);
-		String postUnitModifiersChoice = listToRegExChoice(postUnitModifiers);
-
-		pattern1 = "(the)+ " + preUnitModifiersChoice + " " + timeUnitsSingularChoice;
-		pattern2 = "(the)+ (yesterday|tomorrow)";
-		pattern3 = timeUnitsPluralChoice + " " + postUnitModifiersChoice;
-		pattern4 = "(a|one) " + timeUnitsSingularChoice + " " + postUnitModifiersChoice;
-		
-		patterns = Arrays.asList(new Pattern1(),new Pattern2(), new Pattern3(), new Pattern4());
-	}
-
-	public CorefHandler parse(String input) {
-		CorefHandler corefHandler = null;
-		for (int i=0, size=patterns.size() ; i<size && corefHandler==null ; i++) {
-			corefHandler = patterns.get(i).check(input); 
+		public TimeOperation getOperation() {
+			return operation;
 		}
-		return corefHandler;
-	}
-	
-	public interface PatternContext {
-		Timex apply(Timex timex, Timex refTimex);
-	}
-	
-	public interface CorefHandler {
-		public Timex apply(Timex timex, Timex refTimex);
-	}
-	
-	private static abstract class CorefPattern {
-		public abstract CorefHandler check(String input);
 
-		private static final TimeParser timeParser = new TimeParser();
-		
-		protected CorefHandler createCorefHandler(final int quantity, final TimeUnit unit,
-				final Direction direction, final int tokenCount) {
-			return new CorefHandler() {
-				@Override
-				public Timex apply(Timex timex, Timex refTimex) {
-					Timex result = null;
-					TimeData refTimeData = timeParser.parse(refTimex.getValue());
+	}
+
+	private static final TimeParser timeParser = new TimeParser();
+
+	private static final List<CorefPattern> patterns = Arrays.asList(
+			new Pattern1(),  // (the) {same,next,previous,...} {year,month,day,hour...}
+			new Pattern2(),  // {this,that} (same) {year,month,day,hour...}
+			new Pattern3(),  // yesterday/tomorrow 
+			new Pattern4(),  // <quantity> {years,months,days,hours,...} {before,ago,after,later} 
+			new Pattern5()); // {a,one} {year,month,day,hour,...} {before,ago,after,later}
+	
+
+	public Timex check(Timex timex, Timex refTimex) {
+		Timex result = null;
+
+		// we support only references to time points (not to durations)
+		TimeData refTimeData = timeParser.parse(refTimex.getValue());
+		if (refTimeData.getFormat().isTimePoint()) {
+
+			// reference date time object
+			DateTimeData refDateTimeData = (DateTimeData)refTimeData; 
+
+			// first we check if the referring timex is a durative co-ref such as
+			// 'the next year' or 'two days before', 'the same hour', etc. 
+			// we do this by parsing the text of the timex.
+
+			String text = timex.getText();
+			DurativePatternData patternData = null;
+			for (int i=0, size=patterns.size() ; i<size && patternData==null ; i++) {
+				patternData = patterns.get(i).check(text); 
+			}
+
+			// check if we found any supported pattern of durative co-ref
+			if (patternData!=null) {
+
+				// resolve the durative co-ref
+
+				TimeOperation operation = patternData.getOperation();
+				DurationData duration = patternData.getDuration();
+				TimeUnit unit = duration.getTimeUnit();
+				Timex.Type type = unit.accept(dateTimeGetter);
+				String newValue = null;
+
+				// it's a case of a plus/minus operation
+				if ((operation==TimeOperation.PLUS || operation==TimeOperation.MINUS)) {
+
+					// this path is for cases like 'the next year' or 'two days before' where we
+					// need to do some math to resolve the coref
+
+					// make sure the reference is arithmetic-able
+					if (refTimeData.getFormat().isArithmeticable()) {
+
+						// apply the arithmetic operation
+						newValue = refDateTimeData.apply(operation,duration);
+					}  else {
+						// for error reporting
+						throw new RuntimeException("Cannot perform co-ref operation " + operation + " on the reference time " + refTimex);
+					}									
+				} else if (operation==TimeOperation.GET) {
+
+					// this path is for cases like 'the same year' - where we only need to retrieve info
+					// from the referenced timex.
+
+					// make sure it is possible to extract the requested unit from the reference
 					if (refTimeData.getFormat().has(unit)) {
-						int refValue = ((DateTimeData)refTimeData).get(unit);
-						int newValue = direction==Direction.NONE ? refValue
-								: refValue + quantity * (direction==Direction.POS ? +1 : -1);
-						Timex.Type type = unit.accept(dateTimeGetter);
-						result = new TimexCoref(timex, Integer.toString(newValue), type, tokenCount);
+
+						// retrieve the requested info up to the resolution requested by the referring
+						// timex. For example, when a timex like 'the same day' refers to a full 
+						// date-time like 2012-10-04 14:11:23, we return 2012-10-04. 
+						DateTimeData extracted = refDateTimeData.extract(unit);
+						newValue = extracted.toString();
+					} else {
+						// for error reporting
+						throw new RuntimeException("Cannot extract the time unit " + unit + " from the reference time " + refTimex);
 					}
-					return result;
+				} else {
+					// for error reporting
+					throw new RuntimeException("Unexpected operation " + operation + " on the reference time " + refTimex);
 				}
-			};
+				result = new Timex(timex, newValue, type);
+
+			} else {
+
+				// we didn't find any durative pattern so we will check if this is a case of merging
+				// like: 'September' or 'September 17' or even a full time like 18:34, where the 
+				// reference is to a date. It can also be an hour like 15 merged into a full date.
+				// note that the timex we create is up to the resolution requested by the referencing
+				// item. So for example in the case of the hour 15 referring to a full date like
+				// 2015-04-03 16:12:11 we will return 2015-04-03 15. 
+
+				// verify that we deal with a time point in the referring timex
+				TimeData timeData = timeParser.parse(timex.getValue());
+				if (timeData.getFormat().isTimePoint()) {
+					DateTimeData dateTimeData = (DateTimeData)timeData;
+					DateTimeData merged = refDateTimeData.merge(dateTimeData);
+					String newValue = merged.toString();
+					Timex.Type type = merged.getFormat().hasDate() ? Type.DATE : Type.TIME;
+					result = new Timex(timex, newValue, type);
+				} 
+			}
+		}
+
+		return result;
+	}
+
+	private static class DurativePatternData {
+		private final DurationData duration;
+		private final TimeOperation operation;
+
+		public DurativePatternData(DurationData duration, TimeOperation operation) {
+			super();
+			this.duration = duration;
+			this.operation = operation;
+		}
+
+		public DurationData getDuration() {
+			return duration;
+		}
+
+		public TimeOperation getOperation() {
+			return operation;
+		}
+	}
+
+	private static abstract class CorefPattern {
+
+		protected static String timeUnitsSingularChoice;
+		protected static String timeUnitsPluralChoice;
+
+		protected static String preUnitModifiersChoice;
+		protected static String preSelfUnitModifiersChoice;
+		protected static String postUnitModifiersChoice;
+
+		private static <A> String listToRegExChoice(List<A> list) {
+			StringBuilder buffer = new StringBuilder();
+			buffer.append("(");
+			for (A item : list) {
+				buffer.append(item.toString());
+				buffer.append("|");
+			}
+			buffer.setCharAt(buffer.length()-1, ')');
+			return buffer.toString();
 		}
 		
-	}
+		static {
+			List<TimeUnit> timeUnitList = Arrays.asList(TimeUnit.values());
+			List<String> timeUnitSingularStrList = new ArrayList<String>();
+			List<String> timeUnitPluralStrList = new ArrayList<String>();
+			for (TimeUnit timeUnit : timeUnitList) {
+				timeUnitSingularStrList.add(timeUnit.toString());
+				timeUnitPluralStrList.add(timeUnit.toString()+"s");			
+			}
+
+			timeUnitsSingularChoice = listToRegExChoice(timeUnitSingularStrList);
+			timeUnitsPluralChoice = listToRegExChoice(timeUnitPluralStrList);
+
+			preUnitModifiersChoice = listToRegExChoice(Arrays.asList(PreUnitModifier.values()));
+			preSelfUnitModifiersChoice = listToRegExChoice(Arrays.asList(PreSelfUnitModifier.values()));
+			postUnitModifiersChoice = listToRegExChoice(Arrays.asList(PostUnitModifier.values()));
+		}		
+		
+		public abstract DurativePatternData check(String input);
+	}	
 
 	private static class Pattern1 extends CorefPattern {
+
+		private final static String pattern = "(THE )?" + preUnitModifiersChoice + " " + timeUnitsSingularChoice;
 		
-		private final static RegExPattern regExPattern = new RegExPattern(pattern1);
-		
+		private final static RegExPattern regExPattern = new RegExPattern(pattern);
+
 		@Override
-		public CorefHandler check(String input) {
-			CorefHandler corefHandler = null;
+		public DurativePatternData check(String input) {
+			DurativePatternData patternData = null;
 			Matcher matcher = regExPattern.check(input.toUpperCase());
 			if (matcher.matches()) {
-				final int quantity = 1;
-				final PreUnitModifier mod = PreUnitModifier.valueOf(matcher.group(2));
-				final TimeUnit unit = TimeUnit.valueOf(matcher.group(3));
-				final Direction direction = mod.getDirection();
-				final int tokenCount = input.split(" ").length;
-				corefHandler = createCorefHandler(quantity,unit,direction,tokenCount);
+				PreUnitModifier mod = PreUnitModifier.valueOf(matcher.group(2));
+				TimeOperation operation = mod.getOperation();
+				DurationData duration = new DurationData(1,TimeUnit.valueOf(matcher.group(3))); 
+				patternData = new DurativePatternData(duration,operation);
 			}
-			return corefHandler;
+			return patternData;
 		}
-		
+
 	}
-	
+
 	private static class Pattern2 extends CorefPattern {
+
+		private final static String pattern = preSelfUnitModifiersChoice + " (SAME )?" + timeUnitsSingularChoice;
 		
-		private final static RegExPattern regExPattern = new RegExPattern(pattern2);
-		
+		private final static RegExPattern regExPattern = new RegExPattern(pattern);
+
 		@Override
-		public CorefHandler check(String input) {
-			CorefHandler corefHandler = null;
+		public DurativePatternData check(String input) {
+			DurativePatternData patternData = null;
 			Matcher matcher = regExPattern.check(input.toUpperCase());
 			if (matcher.matches()) {
-				int quantity = 1;
-				TimeUnit unit = TimeUnit.DAY;
-				Direction direction = input.equals("YESTERDAY") ? Direction.NEG : Direction.POS;
-				int tokenCount = 1;
-				corefHandler = createCorefHandler(quantity,unit,direction,tokenCount);
+				PreSelfUnitModifier mod = PreSelfUnitModifier.valueOf(matcher.group(1));
+				TimeOperation operation = mod.getOperation();
+				DurationData duration = new DurationData(1,TimeUnit.valueOf(matcher.group(3))); 
+				patternData = new DurativePatternData(duration,operation);
 			}
-			return corefHandler;
+			return patternData;
+		}
+
+	}	
+	private static class Pattern3 extends CorefPattern {
+
+		private final static String pattern = "(the)+ (yesterday|tomorrow)";
+		
+		private final static RegExPattern regExPattern = new RegExPattern(pattern);
+
+		@Override
+		public DurativePatternData check(String input) {
+			DurativePatternData patternData = null;
+			Matcher matcher = regExPattern.check(input.toUpperCase());
+			if (matcher.matches()) {
+				DurationData duration = new DurationData(1,TimeUnit.DAY); 
+				TimeOperation operation = input.equals("YESTERDAY") ? TimeOperation.MINUS : TimeOperation.PLUS;
+				patternData = new DurativePatternData(duration,operation); 
+			}
+			return patternData;
 		}
 	}
-	
-	private static class Pattern3 extends CorefPattern {
+
+	private static class Pattern4 extends CorefPattern {
+
+		private final static String pattern = timeUnitsPluralChoice + " " + postUnitModifiersChoice;
 		
 		private final static NumberWordPattern numberPattern = new NumberWordPattern();
-		private final static RegExPattern regExPattern = new RegExPattern(pattern3.toUpperCase());
-		
+		private final static RegExPattern regExPattern = new RegExPattern(pattern.toUpperCase());
+
 		@Override
-		public CorefHandler check(String input) {
-			CorefHandler corefHandler = null;
+		public DurativePatternData check(String input) {
+			DurativePatternData patternData = null;
 			NumberWordPatternResult numberWordResult = numberPattern.check(input);
 			if (numberWordResult.getLength()>0) {
 				String remaining = input.substring(numberWordResult.getLength()+1);
 				Matcher matcher = regExPattern.check(remaining.toUpperCase());
 				if (matcher.matches()) {
-					int quantity = numberWordResult.getValue();
 					Format format = Format.valueOf(matcher.group(1));
-					TimeUnit unit = format.accept(timeUnitGetter);
+					DurationData duration = new DurationData(numberWordResult.getValue(),format.accept(timeUnitGetter)); 
 					PostUnitModifier mod = PostUnitModifier.valueOf(matcher.group(2));
-					Direction direction = mod.getDirection();
-					int tokenCount = input.split(" ").length;
-					corefHandler = createCorefHandler(quantity,unit,direction,tokenCount);
+					TimeOperation operation = mod.getOperation();
+					patternData = new DurativePatternData(duration,operation);
 				}
 			}
-			return corefHandler;
+			return patternData;
 		}
 
 	}
-	private static class Pattern4 extends CorefPattern {
+
+	private static class Pattern5 extends CorefPattern {
+
+		private final static String pattern = "(A|ONE) " + timeUnitsSingularChoice + " " + postUnitModifiersChoice;
 		
-		private final static RegExPattern regExPattern = new RegExPattern(pattern4);
-		
+		private final static RegExPattern regExPattern = new RegExPattern(pattern);
+
 		@Override
-		public CorefHandler check(String input) {
-			CorefHandler corefHandler = null;
+		public DurativePatternData check(String input) {
+			DurativePatternData patternData = null;
 			Matcher matcher = regExPattern.check(input.toUpperCase());
 			if (matcher.matches()) {
-				int quantity = 1;
 				Format format = Format.valueOf(matcher.group(1));
-				TimeUnit unit = format.accept(timeUnitGetter);
+				DurationData duration = new DurationData(1,format.accept(timeUnitGetter)); 
 				PostUnitModifier mod = PostUnitModifier.valueOf(matcher.group(2));
-				Direction direction = mod.getDirection();
-				int tokenCount = input.split(" ").length;
-				corefHandler = createCorefHandler(quantity,unit,direction,tokenCount);
+				TimeOperation operation = mod.getOperation();
+				patternData = new DurativePatternData(duration,operation); 
 			}			
-			return corefHandler;
+			return patternData;
 		}
 
 	}
@@ -251,7 +364,7 @@ public class CorefParser {
 		public RegExPattern(String regex) {
 			this.pattern = Pattern.compile(regex);
 		}
-		
+
 		public Matcher check(String input) {
 			return pattern.matcher(input);
 		}
@@ -272,7 +385,7 @@ public class CorefParser {
 			boolean inPrefix = true;
 			int prefixWords = 0;
 			int prefixLength = 0;
-			
+
 			if(input != null && input.length()> 0) {
 				input = input.replaceAll("-", " ");
 				input = input.toLowerCase().replaceAll(" and", " ");
@@ -288,7 +401,7 @@ public class CorefParser {
 				}
 
 				int result = 0;
-				
+
 				finalResult = 0;				
 				for (int i=0 ; i<=prefixWords ; i++) {
 					String str = splittedParts[i];
@@ -335,11 +448,11 @@ public class CorefParser {
 			return new NumberWordPatternResult(finalResult, prefixLength-1);
 		}
 	}
-	
+
 	private static class NumberWordPatternResult {
 		private final int value;
 		private final int length;
-		
+
 		public NumberWordPatternResult(int value, int length) {
 			super();
 			this.value = value;
@@ -353,8 +466,10 @@ public class CorefParser {
 		public int getLength() {
 			return length;
 		}
-		
+
 	}
+
+
 
 	private static TimeUnit.Visitor<Timex.Type> dateTimeGetter = new TimeUnit.Visitor<Timex.Type>() {
 		@Override	public Timex.Type visitYear() 		{return Timex.Type.DATE;}
@@ -364,7 +479,7 @@ public class CorefParser {
 		@Override public Timex.Type visitMinute() 	{return Timex.Type.TIME;}
 		@Override public Timex.Type visitSecond() 	{return Timex.Type.TIME;}
 	};
-	
+
 	private static Format.DurationVisitor<TimeUnit> timeUnitGetter = new Format.DurationVisitor<TimeUnit>() {
 		@Override	public TimeUnit visitYears() 		{return TimeUnit.YEAR;}
 		@Override public TimeUnit visitMonths() 	{return TimeUnit.MONTH;}
@@ -373,5 +488,5 @@ public class CorefParser {
 		@Override public TimeUnit visitMinutes() 	{return TimeUnit.MINUTE;}
 		@Override public TimeUnit visitSeconds() 	{return TimeUnit.SECOND;}
 	};
-	
+
 }
