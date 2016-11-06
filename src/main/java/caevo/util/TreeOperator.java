@@ -13,13 +13,11 @@ import java.util.Vector;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.IndexedWord;
 import edu.stanford.nlp.ling.Label;
-import edu.stanford.nlp.ling.Word;
 import edu.stanford.nlp.trees.GrammaticalRelation;
 import edu.stanford.nlp.trees.LabeledScoredTreeFactory;
 import edu.stanford.nlp.trees.PennTreeReader;
 import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.trees.TreeFactory;
-import edu.stanford.nlp.trees.TreeGraphNode;
 import edu.stanford.nlp.trees.TypedDependency;
 
 /**
@@ -546,11 +544,13 @@ public class TreeOperator {
 
       IndexedWord gov = new IndexedWord();
       gov.setWord(strGov.substring(0,hyphen));
-
+      gov.setValue(strGov.substring(0,hyphen));
+      
       int end = strGov.length();
       // "happy-12'"  -- can have many apostrophes, each indicates the nth copy of this relation
       gov.setIndex(Integer.parseInt(strGov.substring(hyphen+1,end)));
-
+      
+      
       // "sad-3"
       hyphen = strDep.length()-2;
       while( hyphen > -1 && strDep.charAt(hyphen) != '-' ) hyphen--;
@@ -558,7 +558,8 @@ public class TreeOperator {
 
      IndexedWord dep = new IndexedWord();
       dep.setWord(strDep.substring(0,hyphen));
-
+      dep.setValue(strDep.substring(0,hyphen));
+      
       end = strDep.length();
       // "sad-3'"  -- can have many apostrophes, each indicates the nth copy of this relation
       dep./*label().*/setIndex(Integer.parseInt(strDep.substring(hyphen+1,end)));
