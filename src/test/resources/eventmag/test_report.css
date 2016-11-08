@@ -1,0 +1,138 @@
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+	text-align: left;
+}
+
+table, th {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+	
+th.id-col {
+	width: 20px;
+}
+
+th.text-col {
+	width: 230px;
+}
+
+th.source-col {
+	width: 190px;
+}
+
+th.gold-col {
+	width: 190px;
+}
+
+th.expected-col {
+	width: 190px;
+}
+
+th.scores-col {
+	width: 80px;
+}
+
+th.comments-col {
+	width: 250px;
+}	
+
+td.score-name-col {
+	text-align: left;
+	width:50%;
+}
+td.score-value-col {
+	text-align: right;
+	width:50%;
+}
+
+.marginer {
+	margin-left: 4px;
+	margin-right: 4px;	
+}
+
+.padder {
+    padding-left: 5px;
+    padding-right: 5px;		
+}
+
+
+.sub {
+    border: 0px;
+	width: 100%;
+    padding-left: 5px;
+    padding-right: 5px;		
+}
+
+.gold-match, .expected-match {
+	background-color: #C3FDB8;
+}
+
+.gold-nomatch {
+	background-color: #AF0000;
+	color: white;
+}
+
+.gold-nomatch, .source-match, .source-nomatch {
+}
+
+.expected-nomatch {
+	background-color: #CF0000;
+	color: white;
+}
+
+.index {
+	font-size: 12px;
+}
+
+td.unmark {
+	background-color: white;
+	color: black;
+}
+
+.onoffswitch {
+    position: relative; width: 200px;
+    -webkit-user-select:none; -moz-user-select:none; -ms-user-select: none;
+	margin-bottom: 16px;
+}
+.onoffswitch-checkbox {
+    display: none;
+}
+.onoffswitch-label {
+    display: block; overflow: hidden; cursor: pointer;
+    border: 2px solid #999999; border-radius: 20px;
+}
+.onoffswitch-inner {
+    display: block; width: 200%; margin-left: -100%;
+    transition: margin 0.3s ease-in 0s;
+}
+.onoffswitch-inner:before, .onoffswitch-inner:after {
+    display: block; float: left; width: 50%; height: 30px; padding: 0; line-height: 30px;
+    font-size: 14px; color: white; font-family: Trebuchet, Arial, sans-serif; font-weight: bold;
+    box-sizing: border-box;
+}
+.onoffswitch-inner:before {
+    content: "Gold vs. Expected On";
+    padding-left: 10px;
+    background-color: #C3FDB8; color: #AF0000;
+}
+.onoffswitch-inner:after {
+    content: "Gold vs. Expected Off";
+    padding-right: 10px;
+    background-color: #EEEEEE; color: #999999;
+    text-align: right;
+}
+.onoffswitch-switch {
+    display: block; width: 18px; margin: 6px;
+    background: #FFFFFF;
+    position: absolute; top: 0; bottom: 0;
+    right: 166px;
+    border: 2px solid #999999; border-radius: 20px;
+    transition: all 0.3s ease-in 0s; 
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+    margin-left: 0;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
+    right: 0px; 
+}

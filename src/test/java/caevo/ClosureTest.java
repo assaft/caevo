@@ -38,12 +38,12 @@ public class ClosureTest extends TestCase {
 		List<TLink> links = new ArrayList<TLink>();
 		for( String rule : rules ) {
 			String[] arr = rule.split(" ");
-			links.add(new EventEventLink(arr[0], arr[1], TLink.Type.valueOf(arr[2])));
+			links.add(new EventEventLink(arr[0], arr[1], TLink.Type.valueOf(arr[2]), null));
 		}
 		List<TLink> expectedLinks = new ArrayList<TLink>();
 		for( String rule : expected ) {
 			String[] arr = rule.split(" ");
-			expectedLinks.add(new EventEventLink(arr[0], arr[1], TLink.Type.valueOf(arr[2])));
+			expectedLinks.add(new EventEventLink(arr[0], arr[1], TLink.Type.valueOf(arr[2]), null));
 		}
 		
 		

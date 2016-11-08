@@ -1,0 +1,5 @@
+t0,2002-07-11
+t1,P5Y
+ei1,studied,OCCURRENCE
+ei2,graduated,OCCURRENCE
+l1,ei1,ei2,BEFORE,t1

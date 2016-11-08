@@ -1,11 +1,6 @@
-ei1,taught,STATE
 t0,2002-07-10
 t1,PT20M
 t2,XXXX-WXX-1
+ei1,taught,I_ACTION
 l1,ei1,t1,DURING
 l2,ei1,t2,IS_INCLUDED
-l3,t1,t2,IS_INCLUDED
-l4,ei1,t0,AFTER
-l5,t1,t0,VAGUE
-l6,t2,t0,AFTER
-

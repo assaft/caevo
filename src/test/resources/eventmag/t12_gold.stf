@@ -1,0 +1,5 @@
+t0,2002-07-11
+t1,P3M
+ei1,surrendered,OCCURRENCE
+ei2,sailed,OCCURRENCE
+l1,ei1,ei2,AFTER,t1

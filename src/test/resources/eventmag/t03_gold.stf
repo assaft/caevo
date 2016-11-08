@@ -1,0 +1,5 @@
+t0,2002-07-11
+t1,P6D
+ei1,adopted,OCCURRENCE
+ei2,adopted,OCCURRENCE
+l1,ei1,ei2,AFTER,t1

@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="test_report.css">
+</head>
+<body>
+<script>
+
+
+                function toggleByName(name) { 
+                    var x = document.getElementsByName(name);
+                    var i;
+                    for (i = 0; i < x.length; i++) {
+                        x[i].classList.toggle("unmark");
+                    }
+                }
+                
+                function toggleFunction() { 
+                    toggleByName('gold');
+                    toggleByName('expected');
+                }
+                
+                </script>
+<h1 align="center">Test Suite for Event-Event Relations</h1>
+<p>This test suite is based on example sentences created by editors for the TI-REC training data. Due to some errors in the current version of Caevo, we distinguish between the current (expected) result and the desired (gold) result. The expected result for each sentence is shown in the 'Expected' column and the gold result is shown in the 'Gold' column. The test suite runs as part of the building process of Caevo and verifies that all test cases are annotated as expected. The rest of this file details the test cases and their status.</p>
+
+
+ <div class="onoffswitch">
+                    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" onclick="toggleFunction()" id="myonoffswitch" checked>
+                    <label class="onoffswitch-label" for="myonoffswitch">
+                        <span class="onoffswitch-inner"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+                </div><table style="width:100%">
+<tr>
+<th class='id-col'>Id</th>
+<th class='text-col'>Text</th>
+<th class='gold-col'>Gold</th>
+<th class='expected-col'>Expected</th>
+<th class='comments-col'>Comments</th>
+</tr>
+<tr>
+<td valign="top">
+01</td>
+<td valign="top">
+<div class="marginer">German forces attacked South Africa after French and British troops invaded Togoland and Kamerun<br></div>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='gold' class='td sub gold-match' valign="top">
+t0,2002-07-11</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+0</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei1,attacked,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+1</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei2,invaded,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+2</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+l1,ei1,ei2,AFTER</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+3</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='expected' class='td sub expected-match' valign="top">
+t0,2002-07-11</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+0</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei1,attacked,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+1</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei2,invaded,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+2</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+l1,ei1,ei2,AFTER</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+3</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+</td>
+</tr>
+<tr>
+<td valign="top">
+02</td>
+<td valign="top">
+<div class="marginer">The payment of reparations was suspended after the Great Depression arrived<br></div>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='gold' class='td sub gold-match' valign="top">
+t0,2002-07-11</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+0</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei1,suspended,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+1</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei2,arrived,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+2</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+l1,ei1,ei2,AFTER</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+3</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='expected' class='td sub expected-match' valign="top">
+t0,2002-07-11</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+0</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei1,suspended,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+1</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei2,arrived,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+2</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+l1,ei1,ei2,AFTER</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+3</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+</td>
+</tr>
+<tr>
+<td valign="top">
+03</td>
+<td valign="top">
+<div class="marginer">The Moscow Soviet Workers Deputies adopted the resolution after the Petrograd Soviet of Workers and Soldiers Deputies adopted it.<br></div>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='gold' class='td sub gold-match' valign="top">
+t0,2002-07-11</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+0</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei1,adopted,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+1</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei2,adopted,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+2</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+l1,ei1,ei2,AFTER</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+3</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='expected' class='td sub expected-match' valign="top">
+t0,2002-07-11</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+0</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei1,adopted,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+1</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei2,adopted,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+2</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+l1,ei1,ei2,AFTER</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+3</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+</td>
+</tr>
+<tr>
+<td valign="top">
+04</td>
+<td valign="top">
+<div class="marginer">Antonio de Oliveira Salazar rose to Prime Minister after being appointed Minister of Finance<br></div>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='gold' class='td sub gold-match' valign="top">
+t0,2002-07-11</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+0</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei1,rose,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+1</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei2,appointed,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+2</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+l1,ei1,ei2,AFTER</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+3</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='expected' class='td sub expected-match' valign="top">
+t0,2002-07-11</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+0</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei1,rose,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+1</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei2,appointed,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+2</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+l1,ei1,ei2,AFTER</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+3</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+</td>
+</tr>
+<tr>
+<td valign="top">
+05</td>
+<td valign="top">
+<div class="marginer">New York City was named New Amsterdam after its founding<br></div>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='gold' class='td sub gold-match' valign="top">
+t0,2002-07-11</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+0</td>
+</tr>
+<tr><td name='gold' class='td sub gold-nomatch' valign="top">
+ei1,named,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-nomatch' valign="top">
+</td>
+</tr>
+<tr><td name='gold' class='td sub gold-nomatch' valign="top">
+ei2,founding,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-nomatch' valign="top">
+</td>
+</tr>
+<tr><td name='gold' class='td sub gold-nomatch' valign="top">
+l1,ei1,ei2,AFTER</td>
+<td name='gold' class='td index sub gold-nomatch' valign="top">
+</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='expected' class='td sub expected-match' valign="top">
+t0,2002-07-11</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+0</td>
+</tr>
+<tr><td name='expected' class='td sub expected-nomatch' valign="top">
+ei1,named,I_ACTION</td>
+<td name='expected' class='td index sub expected-nomatch' valign="top">
+</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+<div class="marginer">Missed event - 'founding'<br></div>
+</td>
+</tr>
+<tr>
+<td valign="top">
+06</td>
+<td valign="top">
+<div class="marginer">Commons voted to end the war in America after Lord North resigned<br></div>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='gold' class='td sub gold-match' valign="top">
+t0,2002-07-11</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+0</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei1,voted,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+1</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei2,end,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+2</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei3,war,STATE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+3</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei4,resigned,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+4</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+l1,ei1,ei2,BEFORE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+5</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+l2,ei2,ei4,AFTER</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+6</td>
+</tr>
+<tr><td name='gold' class='td sub gold-nomatch' valign="top">
+l3,ei1,ei3,IS_INCLUDED</td>
+<td name='gold' class='td index sub gold-nomatch' valign="top">
+</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+l4,ei1,ei4,AFTER</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+8</td>
+</tr>
+<tr><td name='gold' class='td sub gold-nomatch' valign="top">
+l5,ei4,ei3,IS_INCLUDED</td>
+<td name='gold' class='td index sub gold-nomatch' valign="top">
+</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='expected' class='td sub expected-match' valign="top">
+t0,2002-07-11</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+0</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei1,voted,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+1</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei2,end,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+2</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei3,war,STATE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+3</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei4,resigned,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+4</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+l1,ei1,ei2,BEFORE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+5</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+l2,ei2,ei4,AFTER</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+6</td>
+</tr>
+<tr><td name='expected' class='td sub expected-nomatch' valign="top">
+l3,ei1,ei3,BEFORE</td>
+<td name='expected' class='td index sub expected-nomatch' valign="top">
+</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+l4,ei1,ei4,AFTER</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+8</td>
+</tr>
+<tr><td name='expected' class='td sub expected-nomatch' valign="top">
+l5,ei2,ei3,BEFORE</td>
+<td name='expected' class='td index sub expected-nomatch' valign="top">
+</td>
+</tr>
+<tr><td name='expected' class='td sub expected-nomatch' valign="top">
+l6,ei4,ei3,BEFORE</td>
+<td name='expected' class='td index sub expected-nomatch' valign="top">
+</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+</td>
+</tr>
+<tr>
+<td valign="top">
+07</td>
+<td valign="top">
+<div class="marginer">Amelio was ousted after the NeXT deal was finalized<br></div>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='gold' class='td sub gold-match' valign="top">
+t0,2002-07-11</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+0</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei1,ousted,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+1</td>
+</tr>
+<tr><td name='gold' class='td sub gold-nomatch' valign="top">
+ei2,finalized,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-nomatch' valign="top">
+</td>
+</tr>
+<tr><td name='gold' class='td sub gold-nomatch' valign="top">
+l1,ei1,ei2,AFTER</td>
+<td name='gold' class='td index sub gold-nomatch' valign="top">
+</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='expected' class='td sub expected-match' valign="top">
+t0,2002-07-11</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+0</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei1,ousted,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+1</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+<div class="marginer">Missed event - 'finalized'<br></div>
+</td>
+</tr>
+<tr>
+<td valign="top">
+08</td>
+<td valign="top">
+<div class="marginer">Mexico became a republic after its independence<br></div>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='gold' class='td sub gold-match' valign="top">
+t0,2002-07-11</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+0</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei1,became,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+1</td>
+</tr>
+<tr><td name='gold' class='td sub gold-nomatch' valign="top">
+ei2,independence,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-nomatch' valign="top">
+</td>
+</tr>
+<tr><td name='gold' class='td sub gold-nomatch' valign="top">
+l1,ei1,ei2,AFTER</td>
+<td name='gold' class='td index sub gold-nomatch' valign="top">
+</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='expected' class='td sub expected-match' valign="top">
+t0,2002-07-11</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+0</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei1,became,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+1</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+<div class="marginer">Missed event - 'independence'<br></div>
+</td>
+</tr>
+<tr>
+<td valign="top">
+09</td>
+<td valign="top">
+<div class="marginer">The decision was implemented after the vote<br></div>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='gold' class='td sub gold-match' valign="top">
+t0,2002-07-11</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+0</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei1,decision,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+1</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei2,implemented,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+2</td>
+</tr>
+<tr><td name='gold' class='td sub gold-nomatch' valign="top">
+ei3,vote,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-nomatch' valign="top">
+</td>
+</tr>
+<tr><td name='gold' class='td sub gold-nomatch' valign="top">
+l2,ei2,ei3,AFTER</td>
+<td name='gold' class='td index sub gold-nomatch' valign="top">
+</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='expected' class='td sub expected-match' valign="top">
+t0,2002-07-11</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+0</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei1,decision,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+1</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei2,implemented,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+2</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+<div class="marginer">Missed event - 'vote'<br></div>
+</td>
+</tr>
+<tr>
+<td valign="top">
+10</td>
+<td valign="top">
+<div class="marginer">The Soviet Union dissolved after Mikhail Gorbachev became leader<br></div>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='gold' class='td sub gold-match' valign="top">
+t0,2002-07-11</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+0</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei1,dissolved,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+1</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei2,became,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+2</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+l1,ei1,ei2,AFTER</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+3</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='expected' class='td sub expected-match' valign="top">
+t0,2002-07-11</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+0</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei1,dissolved,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+1</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei2,became,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+2</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+l1,ei1,ei2,AFTER</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+3</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+</td>
+</tr>
+<tr>
+<td valign="top">
+11</td>
+<td valign="top">
+<div class="marginer">Begin resigned after the death of his wife<br></div>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='gold' class='td sub gold-match' valign="top">
+t0,2002-07-11</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+0</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei1,resigned,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+1</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei2,death,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+2</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+l1,ei1,ei2,AFTER</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+3</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='expected' class='td sub expected-match' valign="top">
+t0,2002-07-11</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+0</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei1,resigned,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+1</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei2,death,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+2</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+l1,ei1,ei2,AFTER</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+3</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+</td>
+</tr>
+<tr>
+<td valign="top">
+12</td>
+<td valign="top">
+<div class="marginer">Harfleur surrendered after Henry V sailed to England<br></div>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='gold' class='td sub gold-match' valign="top">
+t0,2002-07-11</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+0</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei1,surrendered,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+1</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei2,sailed,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+2</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+l1,ei1,ei2,AFTER</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+3</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='expected' class='td sub expected-match' valign="top">
+t0,2002-07-11</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+0</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei1,surrendered,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+1</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei2,sailed,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+2</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+l1,ei1,ei2,AFTER</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+3</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+</td>
+</tr>
+<tr>
+<td valign="top">
+13</td>
+<td valign="top">
+<div class="marginer">The Nazis suffered major military defeats after the invasion of the Soviet Union<br></div>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='gold' class='td sub gold-match' valign="top">
+t0,2002-07-11</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+0</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei1,suffered,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+1</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei2,invasion,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+2</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+l1,ei1,ei2,AFTER</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+3</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='expected' class='td sub expected-match' valign="top">
+t0,2002-07-11</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+0</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei1,suffered,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+1</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei2,invasion,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+2</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+l1,ei1,ei2,AFTER</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+3</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+</td>
+</tr>
+<tr>
+<td valign="top">
+14</td>
+<td valign="top">
+<div class="marginer">Steve Ballmer became CEO after he joined the company<br></div>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='gold' class='td sub gold-match' valign="top">
+t0,2002-07-11</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+0</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei1,became,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+1</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei2,joined,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+2</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+l1,ei1,ei2,AFTER</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+3</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='expected' class='td sub expected-match' valign="top">
+t0,2002-07-11</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+0</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei1,became,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+1</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei2,joined,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+2</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+l1,ei1,ei2,AFTER</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+3</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+</td>
+</tr>
+<tr>
+<td valign="top">
+15</td>
+<td valign="top">
+<div class="marginer">Ben Gurion returned as Minister of Defense after he resigned<br></div>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='gold' class='td sub gold-match' valign="top">
+t0,2002-07-11</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+0</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei1,returned,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+1</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei2,resigned,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+2</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+l1,ei1,ei2,AFTER</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+3</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='expected' class='td sub expected-match' valign="top">
+t0,2002-07-11</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+0</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei1,returned,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+1</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei2,resigned,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+2</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+l1,ei1,ei2,AFTER</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+3</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+</td>
+</tr>
+<tr>
+<td valign="top">
+16</td>
+<td valign="top">
+<div class="marginer">Putin studied law before he graduated<br></div>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='gold' class='td sub gold-match' valign="top">
+t0,2002-07-11</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+0</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei1,studied,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+1</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+ei2,graduated,OCCURRENCE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+2</td>
+</tr>
+<tr><td name='gold' class='td sub gold-match' valign="top">
+l1,ei1,ei2,BEFORE</td>
+<td name='gold' class='td index sub gold-match' valign="top">
+3</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+<table class='table sub'>
+
+<tr><td name='expected' class='td sub expected-match' valign="top">
+t0,2002-07-11</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+0</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei1,studied,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+1</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+ei2,graduated,OCCURRENCE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+2</td>
+</tr>
+<tr><td name='expected' class='td sub expected-match' valign="top">
+l1,ei1,ei2,BEFORE</td>
+<td name='expected' class='td index sub expected-match' valign="top">
+3</td>
+</tr>
+</table>
+</td>
+<td valign="top">
+</td>
+</tr>
+</table>
+</body>
+</html>

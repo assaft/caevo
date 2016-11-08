@@ -1,8 +1,5 @@
+t0,2002-07-10
+t1,P5D
 ei1,came,OCCURRENCE
 ei2,got,OCCURRENCE
-t0,2002-07-10 
-t1,P5D
-l1,ei1,ei2,t1,BEFORE
-l2,ei1,t0,BEFORE
-l3,ei2,t0,BEFORE
-l4,t0,t1,VAGUE
+l1,ei2,ei1,AFTER,t1

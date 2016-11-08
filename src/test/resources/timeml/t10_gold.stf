@@ -1,7 +1,4 @@
+t0,2002-07-10
 ei1,melancholic,STATE
 ei2,attack,OCCURRENCE
-t0,2002-07-10
 l1,ei1,ei2,AFTER
-l2,ei1,t0,BEFORE
-l3,ei2,t0,BEFORE
-

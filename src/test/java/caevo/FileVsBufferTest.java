@@ -1,34 +1,56 @@
 package caevo;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
-import caevo.util.Util;
-import junit.framework.TestCase;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
-public class FileVsBufferTest extends TestCase {
+import caevo.util.CaevoProperties;
+import caevo.util.Util;
+import org.junit.Assert;
+
+@RunWith(Parameterized.class)
+public class FileVsBufferTest {
 	
-	Main main = new Main();
+	private final Main main;
+	private final String text;
 	
-	public void testFileVsBuffer(String text) throws IOException {
+	public FileVsBufferTest(Main main, String text) {
+		super();
+		this.main = main;
+		this.text = text;
+	}
+
+	@Test
+	public void run() throws IOException {
 
 		// Create a temporary file.
-		String tempfile = "input.txt";
-		PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tempfile)));
+		File tempIn = File.createTempFile("input","txt");
+		File tempOut = File.createTempFile("output1","xml");
+		
+		
+		String tempInfile = tempIn.getAbsolutePath();
+		PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tempInfile)));
 		writer.write(text);
 		writer.close();
 
 		// Run the full markup pipeline on the temp file.
-		SieveDocuments docs1 = main.markupRawText(tempfile);
-		assertNotNull(docs1);
-		docs1.writeToXML("output.xml");
-		List<String> lines = Util.readLinesFromFile("output.xml");
+		String tempOutfile = tempOut.getAbsolutePath();
+		SieveDocuments docs1 = main.markupRawText(tempInfile);
+		Assert.assertNotNull(docs1);
+		docs1.writeToXML(tempOutfile);
+		List<String> lines = Util.readLinesFromFile(tempOutfile);
 		StringBuilder fileOutput = new StringBuilder();
 		String separator = "\r\n"; // to match Format.getPrettyXML() used by docs2.writeToString() below  
 		for (String line : lines) {
@@ -37,8 +59,8 @@ public class FileVsBufferTest extends TestCase {
 		}
 
 		// Run the full markup pipeline on the buffer.
-		SieveDocuments docs2 = main.markupRawText(text, false);
-		assertNotNull(docs2);
+		SieveDocuments docs2 = main.markupRawText(text, false, main.getDefaultFixedDct(), tempIn.getName());
+		Assert.assertNotNull(docs2);
 		String bufferOutput = docs2.writeToString();
 		
 		// compare results
@@ -48,20 +70,35 @@ public class FileVsBufferTest extends TestCase {
 			Files.write(Paths.get("file2.xml"), bufferOutput.getBytes("UTF-8"));
 		}
 		
-		assertEquals("Generated XML.",fileOutput.toString(),bufferOutput);
+		Assert.assertEquals("Generated XML.",fileOutput.toString(),bufferOutput);
 	}
-	
-	
-	public void testRawToTimex() throws Exception {
-		
-		List<String> texts = Arrays.asList(
-				"Libya brought the case in 2003 to Britain because of 11/25/1980 and complained.",
-				"Libya, which brought the case to the United Nations' highest judicial body in its dispute with the United States and Britain, hailed the ruling and said it would press anew for a trial in a third neutral country. Britain will complain because they always complain.");
 
-		for (String text : texts) {
-			testFileVsBuffer(text);
-		}
+	private static List<String> texts = Arrays.asList(
+			"Libya brought the case in 2003 to Britain because of 11/25/1980 and complained.",
+			"Libya, which brought the case to the United Nations' highest judicial body in its dispute with the United States and Britain, hailed the ruling and said it would press anew for a trial in a third neutral country. Britain will complain because they always complain.");
+	
+	@Parameterized.Parameters(name= "{1}")
+	public static Collection<?> initParams() throws Exception {
+
+		// test properties
+		String testProperties = "test.properties";
+		String directoryName = "general";
+
+		// Read test properties file
+		ClassLoader classLoader = TestSuite.class.getClassLoader();
+		CaevoProperties.load(TestTools.getPath(classLoader,directoryName + "/" + testProperties));
 		
+		// caevo
+		Main main = new Main();
+
+		// prepare the test cases
+		List<Object[]> testCases = new ArrayList<Object[]>();
+		for (String text : texts) {
+			testCases.add(new Object[]{main,text});
+		}
+ 
+		return testCases;
 	}
+
 
 }

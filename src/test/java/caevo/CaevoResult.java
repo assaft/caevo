@@ -46,16 +46,16 @@ class CaevoResult {
     public String toSTF() {
     	StringBuilder buffer = new StringBuilder();
     	
-    	Map<String,TestEvent> sortedEvents = new TreeMap<String,TestEvent>(events);
-    	for (Entry<String, TestEvent> entry : sortedEvents.entrySet()) {
-    		buffer.append(entry.getKey() + "," + entry.getValue()+ "\n");
-    	}
-    	
     	Map<String,String> sortedTimes = new TreeMap<String,String>(timexes);
     	for (Entry<String, String> entry : sortedTimes.entrySet()) {
     		buffer.append(entry.getKey() + "," + entry.getValue() + "\n");
     	}
 
+    	Map<String,TestEvent> sortedEvents = new TreeMap<String,TestEvent>(events);
+    	for (Entry<String, TestEvent> entry : sortedEvents.entrySet()) {
+    		buffer.append(entry.getKey() + "," + entry.getValue()+ "\n");
+    	}
+    	
     	Map<String,TestTLink> sortedLinks = new TreeMap<String,TestTLink>(tlinks);
     	for (Entry<String, TestTLink> entry : sortedLinks.entrySet()) {
     		buffer.append(entry.getKey() + "," + entry.getValue().toSTF()+ "\n");
@@ -131,7 +131,7 @@ class CaevoResult {
     			break;
     		case 't':
     			String tid = st[0].trim();
-    			String ttext = st[1].trim();
+    			String ttext = st.length==2 ? st[1].trim() : "";
     			if (!timexes.containsKey(tid)) {
     				timexes.put(tid,ttext);
     			} else {
@@ -141,15 +141,8 @@ class CaevoResult {
     		case 'l':
     			String lid = st[0].trim();
     			if (!lids.contains(lid)) {
-    				String magnitude;
-    				String relation;
-    				if (st.length==4) {
-    					magnitude = null;
-    					relation = st[3].trim();
-    				} else {
-    					magnitude = st[3].trim();
-    					relation = st[4].trim();
-    				}
+    				String relation = st[3].trim();
+    				String magnitude = st.length==5 ? magnitude = st[4].trim() : null;
     				tlinks.put(lid,new TestTLink(st[1].trim(), st[2].trim(), magnitude, relation));
     				lids.add(lid);
     			} else {
@@ -397,7 +390,7 @@ class CaevoResult {
 
         @Override
         public String toString() {
-            String str = id + "," + value;
+            String str = value;
             if (clasS != null) str += "," + clasS;
             return str;
         }
@@ -423,8 +416,8 @@ class CaevoResult {
         }
         
         public String toSTF() {
-        	return id1 + "," + id2 + "," + (id3!=null ? id3 + "," : "") + relation;
-        }        
+        	return id1 + "," + id2 + "," + relation + (id3!=null ? "," + id3 : "");
+        }
         
         @Override
         public boolean equals(Object o) {
@@ -451,4 +444,18 @@ class CaevoResult {
             return result;
         }
     }
+
+		public boolean contains(CaevoResult other) {
+			boolean result = true;
+			for (Entry<String, TestEvent> entry : other.events.entrySet()) {
+				result = result && entry.getValue().equals(events.get(entry.getKey()));
+			}
+			for (Map.Entry<String,String> entry : other.timexes.entrySet()) {
+				result = result && entry.getValue().equals(timexes.get(entry.getKey())); 
+			}
+			for (Map.Entry<String, TestTLink> entry : other.tlinks.entrySet()) {
+				result = result && entry.getValue().equals(tlinks.get(entry.getKey())); 
+			}
+			return result;
+		}
 }

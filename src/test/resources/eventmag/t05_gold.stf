@@ -1,0 +1,5 @@
+t0,2002-07-11
+t1,P2Y	
+ei1,named,OCCURRENCE
+ei2,founding,OCCURRENCE
+l1,ei1,ei2,AFTER,t1

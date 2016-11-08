@@ -1,0 +1,1 @@
+Syntax error: 'defeats' is parsed as a verb (with 'military' as its subject) and 'invasion' is linked to it instead of to 'sufferred'. 

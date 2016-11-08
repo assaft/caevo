@@ -1,9 +1,0 @@
-ei1=ei1
-ei2=ei2
-t0=t0
-t1=t1
-l1=l1
-l3=l3
-l4=l4
-l6=l6
-

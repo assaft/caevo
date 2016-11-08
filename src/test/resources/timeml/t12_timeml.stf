@@ -1,5 +1,0 @@
-ei1,taught,OCCURRENCE
-t1,PT20M
-t2,XXXX-WXX-1
-l1,ei1,t1,DURING
-l2,t1,t2,IS_INCLUDED

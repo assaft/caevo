@@ -1,10 +1,5 @@
-ei1,expect,STATE
-ei2,sent,OCCURRENCE
 t0,2002-07-10
 t1,PT2H
-l1,ei2,t1,BEFORE
-l2,ei1,t1,AFTER
-l3,ei1,ei2,AFTER
-l4,ei2,t0,BEFORE
-l5,ei1,t0,VAGUE
-l6,t1,t0,VAGUE
+ei1,expect,I_STATE
+ei2,sent,OCCURRENCE
+l1,ei1,ei2,AFTER

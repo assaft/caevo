@@ -1,0 +1,13 @@
+t0,2002-07-11
+t1,P1M
+ei1,voted,OCCURRENCE
+ei2,end,OCCURRENCE
+ei3,war,OCCURRENCE
+ei4,resigned,OCCURRENCE
+l1,ei1,ei2,BEFORE
+l2,ei2,ei4,AFTER,t1
+l3,ei1,t1,IS_INCLUDED
+l4,ei1,ei3,BEFORE
+l5,ei1,ei4,AFTER
+l6,ei2,ei3,IS_INCLUDED
+l7,ei3,ei4,AFTER

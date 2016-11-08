@@ -1,6 +1,0 @@
-ei1=ei1
-ei2=ei2
-t0=t0
-t1=t1
-l2=l4
-l4=l6

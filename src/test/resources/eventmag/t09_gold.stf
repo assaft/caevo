@@ -1,0 +1,6 @@
+t0,2002-07-11
+t1,P3Y	
+ei1,decision,OCCURRENCE
+ei2,implemented,OCCURRENCE
+ei3,vote,OCCURRENCE
+l2,ei2,ei3,AFTER,t1

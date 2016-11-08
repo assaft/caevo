@@ -1,6 +1,3 @@
-ei1,kicked,OCCURRENCE
-ei2,rose,STATE
 t0,2002-07-10
-l1,ei1,ei2,BEFORE
-l2,ei1,t0,IS_INCLUDED
-l3,ei2,t0,BEFORE
+ei1,kicked,OCCURRENCE
+ei2,rose,OCCURRENCE

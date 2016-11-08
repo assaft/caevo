@@ -1,6 +1,7 @@
 package caevo;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
@@ -23,7 +24,9 @@ public class EventExtractionTest extends TestCase {
 		classifier.loadClassifiers();
 
 		// Create a temporary file.
-		String tempfile = "testing-events.txt";
+		File temp = File.createTempFile("testing-events","txt");
+		String tempfile = temp.getAbsolutePath();
+		
 		PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tempfile)));
 		writer.write(text);
 		writer.close();

@@ -1,0 +1,10 @@
+t0,2002-07-11
+t1,P2Y
+ei1,suffered,OCCURRENCE
+ei2,defeats,OCCURRENCE
+ei3,invasion,OCCURRENCE
+l1,ei3,t1,BEFORE
+l2,ei2,ei3,AFTER,t1
+l3,ei1,t1,AFTER
+l4,ei3,ei1,BEFORE
+l5,ei1,ei2,IS_INCLUDED

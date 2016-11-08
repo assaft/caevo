@@ -1,6 +1,4 @@
-ei1,secured,STATE
-ei2,peace,STATE
 t0,2002-07-10
-l1,ei1,ei2,DURING
-l2,ei1,t0,BEFORE
-l3,ei2,t0,BEFORE
+ei1,secured,OCCURRENCE
+ei2,peace,OCCURRENCE
+l1,ei1,ei2,SIMULTANEOUS

@@ -1,0 +1,4 @@
+t0,2002-07-11
+ei1,resigned,OCCURRENCE
+ei2,death,OCCURRENCE
+l1,ei1,ei2,AFTER

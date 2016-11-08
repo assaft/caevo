@@ -1,4 +1,0 @@
-ei1,expect,STATE
-ei2,sent,OCCURRENCE
-t1,PT2H
-l1,ei1,ei2,t1,AFTER

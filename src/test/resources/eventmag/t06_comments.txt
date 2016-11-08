@@ -1,0 +1,1 @@
+Structural ambiguity here: it should be 'voted' that took place 1 month before the resignation, but the parser connected the resignation to 'end'. Regardless of that, the link 'ei2,ei3,IS_INCLUDED' is wrong and the link ei1,ei3,BEFORE is wrong.

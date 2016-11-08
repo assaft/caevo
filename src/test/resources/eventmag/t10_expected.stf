@@ -1,0 +1,5 @@
+t0,2002-07-11
+t1,P7Y
+ei1,dissolved,OCCURRENCE
+ei2,became,OCCURRENCE
+l1,ei1,ei2,AFTER,t1

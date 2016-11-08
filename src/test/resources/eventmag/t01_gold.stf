@@ -1,0 +1,5 @@
+t0,2002-07-11
+t1,P2W
+ei1,attacked,OCCURRENCE
+ei2,invaded,OCCURRENCE
+l1,ei1,ei2,AFTER,t1

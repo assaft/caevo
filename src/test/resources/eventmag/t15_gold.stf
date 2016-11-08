@@ -1,0 +1,5 @@
+t0,2002-07-11
+t1,P1Y
+ei1,returned,OCCURRENCE
+ei2,resigned,OCCURRENCE
+l1,ei1,ei2,AFTER,t1

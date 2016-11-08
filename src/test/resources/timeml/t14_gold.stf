@@ -1,7 +1,7 @@
-ei1,taught,STATE
-t0,2002
+t0,2002-07-18
 t1,1994
 t2,1999
+ei1,taught,STATE
 l1,ei1,t1,BEGUN_BY
 l2,ei1,t2,ENDED_BY
 l3,t1,t2,BEFORE

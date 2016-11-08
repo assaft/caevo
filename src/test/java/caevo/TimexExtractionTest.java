@@ -1,6 +1,7 @@
 package caevo;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
@@ -19,7 +20,9 @@ public class TimexExtractionTest extends TestCase {
 		Main main = new Main();
 
 		// Create a temporary file.
-		String tempfile = "testing-timex.txt";
+		File temp = File.createTempFile("testing-timex","txt");
+		String tempfile = temp.getAbsolutePath();
+		
 		PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(tempfile)));
 		writer.write(text);
 		writer.close();
