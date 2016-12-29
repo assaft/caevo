@@ -180,26 +180,6 @@ def toggle():
                     </label>
                 </div>"""
 
-def print_dictionary(obj, ident):
-    if type(obj) == dict:
-        for k, v in obj.items():
-            sys.stdout.write(ident)
-            if hasattr(v, '__iter__'):
-                print k
-                print_dictionary(v, ident + '  ')
-            else:
-                print '%s : %s' % (k, v)
-    elif type(obj) == list:
-        for v in obj:
-            sys.stdout.write(ident)
-            if hasattr(v, '__iter__'):
-                print_dictionary(v, ident + '  ')
-            else:
-                print v
-    else:
-        print obj
-                
-                
 def load_properties(filepath, sep='=', comment_char='#'):
     """
     Read the file passed as parameter as a properties file.
@@ -239,12 +219,12 @@ with open(htmlfile, 'w') as outfile:
 
     # collect the issues from github (if asked for it)
     props = load_properties('test.properties')
-    #print_dictionary(props," ")
+    
     if props['Report.useGitHub'].lower()=='true':
-        print "Retrieving relevant issues from Github"
+        print ('Retrieving relevant issues from Github')
         issues = issues()
     else:
-        print "Skipping Github issues"
+        print ('Skipping Github issues')
         issues = dict()
 
     autoAlign = props['Report.autoAlign'].lower()=='true'

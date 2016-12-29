@@ -1,0 +1,6 @@
+t0,2002-07-11
+t1,2007
+ei1,left,OCCURRENCE
+l1,ei1,t1,IS_INCLUDED
+l2,t0,t1,BEFORE
+l3,ei1,t0,AFTER

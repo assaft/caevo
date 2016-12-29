@@ -10,13 +10,13 @@ import caevo.Timex;
 public class EventTimeLink extends TLink {
 
   public EventTimeLink(String eiid, String tid, String rel) {
-    super(eiid,tid,rel);
+    super(eiid,tid,rel,null);
   }
   public EventTimeLink(String eiid, String tid, TLink.Type rel) {
-    super(eiid,tid,rel);
+    super(eiid,tid,rel,null);
   }
   public EventTimeLink(String eiid, String tid, TLink.Type rel, boolean closed) {
-    super(eiid,tid,rel,closed);
+    super(eiid,tid,rel,closed,null);
   }
   public EventTimeLink(Element el) {
     super(el);

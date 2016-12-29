@@ -9,13 +9,16 @@ import caevo.Timex;
 public class TimeTimeLink extends TLink {
 
   public TimeTimeLink(String tid1, String tid2, String rel) {
-    super(tid1,tid2,rel);
+    super(tid1,tid2,rel,null);
   }
   public TimeTimeLink(String tid1, String tid2, TLink.Type rel) {
-    super(tid1,tid2,rel);
+    super(tid1,tid2,rel,null);
+  }
+  public TimeTimeLink(String tid1, String tid2, TLink.Type rel, String tidMag) {
+    super(tid1,tid2,rel,tidMag);
   }
   public TimeTimeLink(String tid1, String tid2, TLink.Type rel, boolean closed) {
-    super(tid1,tid2,rel,closed);
+    super(tid1,tid2,rel,closed,null);
   }
   public TimeTimeLink(Element el) {
     super(el);

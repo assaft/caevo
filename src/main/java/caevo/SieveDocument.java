@@ -16,6 +16,7 @@ import java.util.Vector;
 import org.jdom.Element;
 import org.jdom.Namespace;
 
+import caevo.Timex.Type;
 import caevo.time.CorefParser;
 import caevo.time.TimexCorefResolver;
 import caevo.tlink.EventEventLink;
@@ -24,6 +25,7 @@ import caevo.tlink.TLink;
 import caevo.tlink.TimeTimeLink;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.ling.CoreLabel.OutputFormat;
 import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.trees.TypedDependency;
 
@@ -37,39 +39,37 @@ public class SieveDocument {
 	private List<SieveSentence> sentences;
 	private List<Timex> dcts;
 	private List<TLink> tlinks;
+	private List<TLink> timeRefTLinks;
 	
 	private HashMap<String, TextEvent> eiidToEvent;
 	private HashMap<String, Timex> tidToTimex;
 	
 	private List<List<TextEvent>> eventCorefSets;
 	
+	private CorefParser corefParser;
+
+	
   public SieveDocument(String name) {
   	docname = name;
   	eiidToEvent = new HashMap<String, TextEvent>();
   	tidToTimex = new HashMap<String, Timex>();
-  
   	eventCorefSets = new ArrayList<List<TextEvent>>();
-  }
-
-  /**
-   * Adds a sentence to the file
-   */
-  public void addSentence(String text, String parse, String deps, List<TextEvent> events, List<Timex> timexes) {
-    addSentence(text, null, parse, deps, events, timexes);
+  	corefParser = new CorefParser();
   }
   
   /**
    * Adds a sentence to the file
    * @param tokens These are the tokens in the sentence, listed one per line. Each line has three parts: (1) characters before, (2) original token, (3) characters after.
    */
-  public void addSentence(String text, List<CoreLabel> tokens, String parse, String deps, List<TextEvent> events, List<Timex> timexes) {
+  public void addSentence(String text, List<CoreLabel> tokens, String parse, String deps, List<TextEvent> events, List<Timex> timexes, List<Timex> innerTimexes) {
   	if( sentences == null ) 
   		sentences = new ArrayList<SieveSentence>();
   	int sid = sentences.size();
-  	SieveSentence sent = new SieveSentence(this, sid, text, parse, deps, tokens, events, timexes);
+  	SieveSentence sent = new SieveSentence(this, sid, text, parse, deps, tokens, events, timexes, innerTimexes);
   	
   	sentences.add(sent);
   	addTimexesToTidMap(timexes);
+  	addTimexesToTidMap(innerTimexes);
   	addEventsToEiidMap(events);
   }
   
@@ -77,6 +77,7 @@ public class SieveDocument {
   	if( sentences == null ) sentences = new ArrayList<SieveSentence>();
   	sentences.add(sent);
   	addTimexesToTidMap(sent.timexes());
+  	addTimexesToTidMap(sent.innerTimexes());
   	addEventsToEiidMap(sent.events());
   }
 
@@ -109,7 +110,17 @@ public class SieveDocument {
   	sentences.get(sid).addTimexes(timexes);
   	addTimexesToTidMap(timexes);
   }
-  
+
+  /**
+   * Add inner timexes to a particular sentence.
+   */
+  public void addInnerTimexes(int sid, List<Timex> innerTimexes) {
+  	if( sentences == null ) 
+  		sentences = new ArrayList<SieveSentence>();  	
+  	sentences.get(sid).addInnerTimexes(innerTimexes);
+  	addTimexesToTidMap(innerTimexes);
+  }
+
   private void addEventsToEiidMap (List<TextEvent> events) {
   	if( events != null ) {
   		for (TextEvent event : events) {
@@ -145,6 +156,18 @@ public class SieveDocument {
   		tlink.setDocument(this);
   }
 
+  /**
+   * Adds a list of time-referring tlinks to the XML file
+   * @param tlinks Vector of TLink objects
+   */
+  public void addTimeRefTlinks(List<TLink> newlinks) {
+  	if( timeRefTLinks == null ) 
+  		timeRefTLinks = new ArrayList<TLink>();
+  	timeRefTLinks.addAll(newlinks);
+  	for (TLink tlink : newlinks)
+  		tlink.setDocument(this);
+  }  
+  
   public void addTlink(TLink newlink) {
   	if( tlinks == null ) 
   		tlinks = new ArrayList<TLink>();
@@ -193,6 +216,12 @@ public class SieveDocument {
   }
 
   /**
+   * @return A List of all TLink objects in the document.
+   */
+  public List<TLink> getTimeRefTlinks() {
+  		return timeRefTLinks;
+  }
+  /**
    * @return A list of lists. 
    *         This is a list of sentences, each sentence is a list of CoreLabels with character information.
    */
@@ -208,20 +237,34 @@ public class SieveDocument {
   
 
   /**
-   * @return A List of Lists of all Timex objects. This does not 
-   *         return the document creation time!
+   * @return A List of Lists of all Timex objects, excluding the inner ones. 
+   * 					This does not return the document creation time! 
+   *         
    * 
    */
   public List<List<Timex>> getTimexesBySentence() {
+  	return getTimexesBySentence(false);
+  }
+  
+  /**
+   * @return A List of Lists of all Timex objects. This does not 
+   *         return the document creation time!
+   * @param whether to include inner timexes or not
+   */
+  public List<List<Timex>> getTimexesBySentence(boolean incInnerTimexes) {
   	if( sentences == null ) 
   		sentences = new ArrayList<SieveSentence>();    
   	
   	List<List<Timex>> timexes = new ArrayList<List<Timex>>();
     
     // Timexes in each sentence.
-    for( SieveSentence sent : sentences )
-      timexes.add(sent.timexes());
-    
+    for( SieveSentence sent : sentences ) {
+      List<Timex> list = new ArrayList<Timex>(sent.timexes());
+      if (incInnerTimexes) {
+      	list.addAll(sent.innerTimexes());
+      }
+    	timexes.add(list);
+    }
     return timexes;
   }
   
@@ -606,15 +649,27 @@ public class SieveDocument {
   	} catch( Exception ex ) { ex.printStackTrace(); }
   }
   
-  public void resolveTimexCoref() {
+  
+  /*
+  public void resolveTimexCoref(List<CorefType> corefTypes) {
     TimexCorefResolver resolver = new TimexCorefResolver(sentences);
-		CorefParser corefParser = new CorefParser();
-
+  	
     // go over the sentences
     for (SieveSentence sent : sentences) {
 
+    	List<Timex> timexList = sent.timexes();
+    	
+    	
+      System.out.println("printing timexes:");
+      for (Timex timex : timexList) {
+      	System.out.println(timex + ": " + timex.getTokenOffset() + "-" + timex.getTokenLength());
+      }
+
+      if (1==1) 
+      	continue;
+    	
     	// go over all timexes 
-    	for (int timexId = 0 ; timexId<sent.timexes().size() ; timexId++) {
+    	for (int timexId = 0, size=timexList.size() ; timexId<size ; timexId++) {
     		
     		// the current timex
     		Timex timex = sent.timexes().get(timexId);
@@ -633,7 +688,7 @@ public class SieveDocument {
     			Timex extTimex = getExtendedTimex(timex,sent.tokens());
     			
     			// check if resolvable
-    			newTimex = corefParser.check(extTimex, refTimex);
+    			newTimex = null; //corefParser.check(extTimex, refTimex, corefTypes);
     		}
     		
     		// we expect to find a reference
@@ -651,7 +706,53 @@ public class SieveDocument {
   			}
     	}      			
     }
+  	
+  }*/
+  
+
+  /*
+	private void preprocess(List<CorefType> asList) {
+		
+    // go over the sentences
+    for (SieveSentence sent : sentences) {
+
+    	// go over all timexes 
+    	for (int timexId = 0 ; timexId<sent.timexes().size() ; timexId++) {
+    		
+    		// the current timex
+    		Timex timex = sent.timexes().get(timexId);
+    		
+  			// check if resolvable
+    		Timex newTimex = null; //corefParser.checkArithmetic(timex);
+    		
+    		// we expect to find a reference
+  			if (newTimex!=null) {
+  				// we update only if the value has been changed
+  				if (!newTimex.getValue().equals(timex.getValue())) {
+      			//update list and map
+      			sent.timexes().set(timexId, newTimex);
+      			tidToTimex.put(timex.getTid(), newTimex);
+  					System.out.println("Co-ref update: [" + timex + "] replaced by: [" + newTimex+"]");
+  				}
+  			}
+    	}
+    }
+	}  
+  */
+  public void markupTimexDependencies() {
+		
+    // step 1 - resolve cases of TIMEREF ("in *that year*") and MERGE ("in *September*") 
+  	//resolveTimexCoref(Arrays.asList(CorefType.TIMEREF, CorefType.MERGE));
+  	
+  	// step 2 identify pairs of events that are linked by an advcl or nmod:after dependency
+  	//preprocess(Arrays.asList(CorefType.ARITHMETIC));
+    
+    // step 2 - sort duratives to TIMEREF and EVENTREF
+    
+    // step 3 - resolve TIMEREF
+    
   }
+
 
 	private static final List<List<String>> skippedTimexInitials;
 

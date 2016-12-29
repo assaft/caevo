@@ -22,7 +22,7 @@ import org.junit.runners.Parameterized;
 import caevo.util.CaevoProperties;
 
 @RunWith(Parameterized.class)
-public class CoRefTest {
+public class CoRefTIgnore {
 
 	private static Pattern dctPattern = Pattern.compile("t0\\,(\\d{4}(\\-\\d{2})?(\\-\\d{2})?)");
 	
@@ -33,7 +33,7 @@ public class CoRefTest {
 	private final String dct;
 	private final Main main;
 		
-	public CoRefTest(Main main, String id, String directory, String inName, String inputText, String expectedOutput) {
+	public CoRefTIgnore(Main main, String id, String directory, String inName, String inputText, String expectedOutput) {
 		this.main = main;
 		this.directory = directory;
 		this.inName = inName;
@@ -102,7 +102,7 @@ public class CoRefTest {
 		String testProperties = "test.properties";
 
 		// Read test properties file
-		ClassLoader classLoader = CoRefTest.class.getClassLoader();
+		ClassLoader classLoader = CoRefTIgnore.class.getClassLoader();
 		CaevoProperties.load(getPath(classLoader,directoryName + "/" + testProperties));
 		
 		//Get the files from resources folder

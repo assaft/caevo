@@ -54,7 +54,7 @@ public class BethardAnnotation {
       while ((line = in.readLine()) != null) {
         if( !line.startsWith("#") ) {
           String[] parts = line.split("\\s+");
-          TLink tlink = new TLink(parts[1], parts[2], parts[3]);
+          TLink tlink = new TLink(parts[1], parts[2], parts[3], null);
           
           // Add the new link to the document's list.
           List<TLink> doclinks = _docTLinks.get(parts[0]);

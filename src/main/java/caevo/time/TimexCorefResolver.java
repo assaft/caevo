@@ -37,6 +37,7 @@ public class TimexCorefResolver {
 			// get the constituents in the tree of the sentence
 			Tree tree = sentence.getParseTree();
 			Set<Constituent> constituents = tree.constituents();
+			
 
 			System.out.println(constituents);
 			System.out.println(sentence.getParseTree().toString());

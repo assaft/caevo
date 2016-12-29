@@ -1,6 +1,13 @@
 package caevo;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -16,7 +23,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
-import caevo.Timex.DocumentFunction;
 import caevo.tlink.EventEventLink;
 import caevo.tlink.EventTimeLink;
 import caevo.tlink.TLink;
@@ -35,6 +41,7 @@ import edu.stanford.nlp.ling.HasWord;
 import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
 import edu.stanford.nlp.pipeline.AnnotationPipeline;
 import edu.stanford.nlp.trees.GrammaticalStructure;
+import edu.stanford.nlp.trees.GrammaticalStructure.Extras;
 import edu.stanford.nlp.trees.GrammaticalStructureFactory;
 import edu.stanford.nlp.trees.LabeledScoredTreeFactory;
 import edu.stanford.nlp.trees.PennTreebankLanguagePack;
@@ -687,7 +694,7 @@ public class Tempeval3Parser {
 //      System.out.println("invertibleTokens:\n" + invertibleTokens);
       List<CoreLabel> cls = new ArrayList<CoreLabel>();
       for( HasWord word : sentence ) cls.add((CoreLabel)word);
-      _infodocs.getDocument(docname).addSentence(buildString(sentence, 0, sentence.size()), cls, parseDep.first(), parseDep.second(), localEvents, localTimex);
+      _infodocs.getDocument(docname).addSentence(buildString(sentence, 0, sentence.size()), cls, parseDep.first(), parseDep.second(), localEvents, localTimex, null);
       
       sid++;
     }
@@ -834,6 +841,7 @@ public class Tempeval3Parser {
     }
 
     // Parse the text.
+    justtext = justtext.trim().replaceAll("\\s{2,}", " ");
     SieveDocument sdoc = rawTextToParsed((new File(xmlFilePath)).getName(), justtext, parser, gsf);
     
     // Grab the DCT element.
@@ -1256,7 +1264,7 @@ public class Tempeval3Parser {
   		if( cls.size() > 1 )
   			cls.get(cls.size()-1).set(CoreAnnotations.AfterAnnotation.class, "\n\n"); // new lines after each sentence
 
-  		doc.addSentence(buildStringFromStrings(tokens), cls, strParse, strDeps, null, null);
+  		doc.addSentence(buildStringFromStrings(tokens), cls, strParse, strDeps, null, null, null);
   		sid++;
   	}
 
@@ -1267,13 +1275,12 @@ public class Tempeval3Parser {
     List<String> lines = Util.readLinesFromFile(filepath);
     String bigone = lines.get(0);
     for( int xx = 1; xx < lines.size(); xx++ ) bigone += "\n" + lines.get(xx);
-//    System.out.println("bigone=" + bigone);
- 
     return rawTextToParsed(filepath, bigone, parser, gsf);
   }
   
   public static SieveDocument rawTextToParsed(String filename, String text, LexicalizedParser parser, GrammaticalStructureFactory gsf) {
-    List<List<HasWord>> sentencesNormInvertible = new ArrayList<List<HasWord>>();
+  	List<List<HasWord>> sentencesNormInvertible = new ArrayList<List<HasWord>>();
+  	text = text.trim().replaceAll("\\s{2,}", " ");
     sentencesNormInvertible.addAll(Ling.getSentencesFromTextNormInvertible(text));
     System.out.println("Got " + sentencesNormInvertible.size() + " sentences.");
 
@@ -1292,14 +1299,16 @@ public class Tempeval3Parser {
       Pair<String,String> parseDep = parseDep(sent, parser, gsf);
       List<CoreLabel> cls = new ArrayList<CoreLabel>();
       for( HasWord word : sent ) cls.add((CoreLabel)word);
-      sdoc.addSentence(buildString(sent, 0, sent.size()), cls, parseDep.first(), parseDep.second(), null, null);
+      sdoc.addSentence(buildString(sent, 0, sent.size()), cls, parseDep.first(), parseDep.second(), null, null, null);
+      
       sid++;
     }
     
     return sdoc; 
   }
   
-  private Pair<String,String> parseDep(List<HasWord> sentence) {
+
+	private Pair<String,String> parseDep(List<HasWord> sentence) {
     return parseDep(sentence, _parser, _gsf);
   }
   
@@ -1342,12 +1351,47 @@ public class Tempeval3Parser {
 
       // DEP PARSE the sentence - CAUTION: DESTRUCTIVE to parse tree
       String depString = lexParseToDeps(ansTree, gsf);
-
+      
 //      System.out.println(" - deps: " + depString);
      
       return new Pair<String,String>(parseString,depString);
     }
     return null;
+  }
+
+  private static byte[] convertToBytes(Object object) throws IOException {
+
+	  ByteArrayOutputStream bos = new ByteArrayOutputStream();
+	  ObjectOutput out = null;
+	  try {
+	    out = new ObjectOutputStream(bos);   
+	    out.writeObject(object);
+	    out.flush();
+	    return bos.toByteArray();
+	  } finally {
+	    try {
+	      bos.close();
+	    } catch (IOException ex) {
+	      // ignore close exception
+	    }
+	  }
+  }
+
+  private static Object convertFromBytes(byte[] array) throws Exception {
+  	ByteArrayInputStream bis = new ByteArrayInputStream(array);
+  	ObjectInput in = null;
+  	try {
+  	  in = new ObjectInputStream(bis);
+  	  return in.readObject(); 
+  	} finally {
+  	  try {
+  	    if (in != null) {
+  	      in.close();
+  	    }
+  	  } catch (IOException ex) {
+  	    // ignore close exception
+  	  }
+  	}
   }
   
   /**
@@ -1359,7 +1403,7 @@ public class Tempeval3Parser {
     	try {
     		GrammaticalStructure gs = gsf.newGrammaticalStructure(lexTree);
     		if( gs != null ) {
-    			List<TypedDependency> localdeps = gs.typedDependenciesCCprocessed(true);
+    			List<TypedDependency> localdeps = gs.typedDependenciesCCprocessed(Extras.MAXIMAL);
     			if( localdeps != null )
     				for( TypedDependency dep : localdeps )
     					depString += dep + "\n";

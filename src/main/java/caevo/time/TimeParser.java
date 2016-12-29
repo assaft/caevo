@@ -38,7 +38,7 @@ public class TimeParser {
 				ret = new DateTimeData(values);
 			}
 		} else {
-			int quantity;
+			int quantity = -1;
 			matcher = periodPattern.matcher(s);
 			if (matcher.matches()) {
 				if (matcher.group(2).equals("Y")) {
@@ -60,14 +60,14 @@ public class TimeParser {
 						format = Format.SECONDS;
 					}
 					quantity = Integer.parseInt(matcher.group(1));
-				} else {
-					throw new RuntimeException("Failed to parse: " + s);
-				}
+				} 
 			}
-
-			if (format!=null) {
+			if (format!=null && quantity!=-1) {
 				ret = new DurationData(quantity, format);
 			}
+		}
+		if (ret==null) {
+			ret = new UnsupportedTimeData();
 		}
 		
 		return ret;

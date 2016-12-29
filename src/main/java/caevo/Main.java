@@ -3,6 +3,7 @@ package caevo;
 import caevo.sieves.Sieve;
 import caevo.tlink.TLink;
 import caevo.tlink.TimeTimeLink;
+import caevo.tlink.TLink.Type;
 import caevo.util.*;
 import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
 import edu.stanford.nlp.stats.ClassicCounter;
@@ -58,6 +59,8 @@ public class Main {
 	boolean force24hrDCT = true;
 	String dctHeuristic = "none";
 	String infopath = null;
+	String sieveList;
+	boolean skipVague = false;
 
 	// parser 
 	LexicalizedParser parser;
@@ -127,6 +130,8 @@ public class Main {
 			dataset = DatasetType.valueOf(CaevoProperties.getString("Main.dataset", dataset.toString()).toUpperCase());
 			force24hrDCT = CaevoProperties.getBoolean("Main.force24hrdct", force24hrDCT);
 			dctHeuristic = CaevoProperties.getString("Main.dctHeuristic", dctHeuristic);
+			sieveList = CaevoProperties.getString("Main.sieves","");
+			skipVague = CaevoProperties.getBoolean("Main.skipVague",skipVague);
 		} catch (IOException e) { e.printStackTrace(); }
 	}
 	
@@ -167,33 +172,38 @@ public class Main {
 	}
 
 	private String[] loadSieveList() {
-		String filename = System.getProperty("sieves");
-		if( filename == null ) filename = "default.sieves";
-
-		System.out.println("Reading sieve list from: " + filename);
-
-		List<String> sieveNames = new ArrayList<String>();
-		try {
-			BufferedReader reader = new BufferedReader(new FileReader(new File(filename)));
-			String line;
-			while( (line = reader.readLine()) != null ) {
-				if( !line.matches("^\\s*$") && !line.matches("^\\s*//.*$") ) {
-					// Remove trailing comments if they exist.
-					if( line.indexOf("//") > -1 )
-						line = line.substring(0, line.indexOf("//"));
-					String name = line.trim();
-					sieveNames.add(name);
+		String[] sieveArray;
+		if (!sieveList.isEmpty()) {
+			sieveArray = sieveList.split(",");
+		} else {
+			String filename = System.getProperty("sieves");
+			if( filename == null ) filename = "default.sieves";
+	
+			System.out.println("Reading sieve list from: " + filename);
+	
+			List<String> sieveNames = new ArrayList<String>();
+			try {
+				BufferedReader reader = new BufferedReader(new FileReader(new File(filename)));
+				String line;
+				while( (line = reader.readLine()) != null ) {
+					if( !line.matches("^\\s*$") && !line.matches("^\\s*//.*$") ) {
+						// Remove trailing comments if they exist.
+						if( line.indexOf("//") > -1 )
+							line = line.substring(0, line.indexOf("//"));
+						String name = line.trim();
+						sieveNames.add(name);
+					}
 				}
+				reader.close();
+			} catch( Exception ex ) {
+				System.out.println("ERROR: no sieve list found");
+				ex.printStackTrace();
+				System.exit(1);
 			}
-			reader.close();
-		} catch( Exception ex ) {
-			System.out.println("ERROR: no sieve list found");
-			ex.printStackTrace();
-			System.exit(1);
+			String[] arr = new String[sieveNames.size()];
+			sieveArray = sieveNames.toArray(arr);
 		}
-
-		String[] arr = new String[sieveNames.size()];
-		return sieveNames.toArray(arr);
+		return sieveArray;
 	}
 
 	/**
@@ -235,10 +245,10 @@ public class Main {
 	 * Assumes the global SieveDocuments is initialized and loaded.
 	 * Resolve co-referring timexes on the given documents .
 	 */
-	private void resolveTimexCoref(SieveDocuments thedocs) {
+	private void markupTimexesDependencies(SieveDocuments thedocs) {
 		SieveDocuments docs = getDataset(dataset, thedocs);
 		for( SieveDocument doc : thedocs.getDocuments() ) {
-			doc.resolveTimexCoref();
+			doc.markupTimexDependencies();
 		}
 	}
 	
@@ -259,18 +269,20 @@ public class Main {
 
 		// Start with zero links.
 		List<TLink> currentTLinks = new ArrayList<TLink>();
-		Map<String,TLink> currentTLinksHash = new HashMap<String,TLink>();
+		LinkTable currentTLinksHash = new LinkTable();
         
 		// Create all the sieves first.
 		Sieve sieves[] = createAllSieves(sieveClasses);
 
 		// Statistics collection.
-		SieveStats stats[] = new SieveStats[sieveClasses.length];
+		SieveStats stats[] = new SieveStats[sieveClasses.length+1];
 		Map<String, SieveStats> sieveNameToStats = new HashMap<String, SieveStats>();
 		for( int i = 0; i < sieveClasses.length; i++ ) {
-			stats[i] = new SieveStats(sieveClasses[i]);
-			sieveNameToStats.put(sieveClasses[i], stats[i]);
+			stats[i+1] = new SieveStats(sieveClasses[i]);
+			sieveNameToStats.put(sieveClasses[i], stats[i+1]);
 		}
+		stats[0] = new SieveStats("TimeReference");
+		sieveNameToStats.put("TimeReference", stats[0]);
 		
 		// Data
 		SieveDocuments docs = getDataset(dataset, thedocs);
@@ -280,6 +292,18 @@ public class Main {
 			System.out.println("Processing " + doc.getDocname() + "...");
 //			System.out.println("Number of gold links: " + thedocsUnchanged.getDocument(doc.getDocname()).getTlinks().size());
 			
+			// Add the time-time links to our current list.
+			System.out.println("\tTime References");			
+			if( debug ) System.out.println("\t\t" + doc.getTimeRefTlinks().size() + " new links.");
+			addProposedToCurrentList("TimeReference", doc.getTimeRefTlinks(), currentTLinks, currentTLinksHash);
+
+			// Run Closure
+			if( useClosure ) {
+				List<TLink> closedLinks = closureExpand("TimeReference", currentTLinks, currentTLinksHash);
+				if( debug ) System.out.println("\t\tClosure produced " + closedLinks.size() + " links.");
+				stats[0].addClosureCount(closedLinks.size());
+			}
+			
 			// Loop over the sieves in order.
 			for( int xx = 0; xx < sieves.length; xx++ ) {
 				Sieve sieve = sieves[xx];
@@ -288,15 +312,30 @@ public class Main {
                 
 				// Run this sieve
 				List<TLink> newLinks = sieve.annotate(doc, currentTLinks);
+				
+				// skip vague links if requested to
+				if (skipVague) {
+					Iterator<TLink> it = newLinks.iterator();
+					int skippedCount = 0;
+					while (it.hasNext()) {
+					   TLink tlink = it.next();
+					   if (tlink.getRelation()==Type.VAGUE) {
+					  	 it.remove();
+					  	 skippedCount++;
+					   }
+					}
+					if( debug ) System.out.println("\t\tskipped " + skippedCount + " new VAGUE links.");
+				}
+				
 				if( debug ) System.out.println("\t\t" + newLinks.size() + " new links.");
 //				if( debug ) System.out.println("\t\t" + newLinks);
-				stats[xx].addProposedCount(newLinks.size());
+				stats[xx+1].addProposedCount(newLinks.size());
 				
 				// Verify the links as non-conflicting.
 				int numRemoved = removeConflicts(currentTLinksHash, newLinks);
 				if( debug ) System.out.println("\t\tRemoved " + numRemoved + " proposed links.");
 //				if( debug ) System.out.println("\t\t" + newLinks);
-				stats[xx].addRemovedCount(numRemoved);
+				stats[xx+1].addRemovedCount(numRemoved);
 				
 				if( newLinks.size() > 0 ) {
 					// Add the good links to our current list.
@@ -307,7 +346,7 @@ public class Main {
 						List<TLink> closedLinks = closureExpand(sieveClasses[xx], currentTLinks, currentTLinksHash);
 						if( debug ) System.out.println("\t\tClosure produced " + closedLinks.size() + " links.");
 						//					if( debug ) System.out.println("\t\tclosed=" + closedLinks);
-						stats[xx].addClosureCount(closedLinks.size());
+						stats[xx+1].addClosureCount(closedLinks.size());
 					}
 				}
 				if( debug ) System.out.println("\t\tDoc now has " + currentTLinks.size() + " links.");
@@ -537,18 +576,117 @@ public class Main {
 		
 		return builder.toString();
 	}
+	
+	private static class LinkId {
+		private final List<String> names;
+		
+		private LinkId(List<String> names) {
+			this.names = names;
+		}
+
+		private static final List<List<Integer>> orders;
+		
+		static {
+			orders = new ArrayList<List<Integer>>();
+			List<Integer> ids = Arrays.asList(0,1,2);
+			for (int i=0 ; i<3 ; i++) {
+				for (int j=0 ; j<3 ; j++) {
+					if (i!=j) {
+						List<Integer> localIds = new ArrayList<Integer>(ids); 
+						localIds.removeAll(Arrays.asList(i,j));
+						orders.add(Arrays.asList(i,j,localIds.get(0)));
+						orders.add(Arrays.asList(i,j));
+					}
+				}
+			}
+		}
+		
+		public static LinkId of(TLink link) {
+			List<String> values = Arrays.asList(link.getId1(),link.getId2(),link.getIdM()!=null ? link.getIdM() : "");
+
+			Set<String> names = new HashSet<String>();
+			for (int i=0, ordersCount=orders.size() ; i<ordersCount ; i++) {
+				List<Integer> order = orders.get(i);
+				boolean missedItem = false;
+				StringBuilder name = new StringBuilder();
+				for (int j=0, itemsCount=order.size() ; j<itemsCount && !missedItem; j++) {
+					String value = values.get(order.get(j));
+					if (!value.isEmpty()) {
+						name.append(value);
+					} else {
+						missedItem = true;
+					}
+				}
+				if (!missedItem) {
+					names.add(name.toString());
+				}
+			}
+			
+			return new LinkId(new ArrayList<String>(names));
+		}
+		
+		public List<String> getNames() {
+			return names;
+		}
+		
+		public String toString() {
+			return names.toString();
+		}
+		
+		public boolean covers(LinkId otherId) {
+			return names.containsAll(otherId.names);
+		}
+		
+	}
+	
+	private static class LinkTable {
+		private final Map<String,TLink> links;
+		
+		public LinkTable() {
+			links = new HashMap<String, TLink>();
+		}
+		
+		public boolean containsLink(LinkId id) {
+			List<String> names = id.getNames();
+			boolean result = true;
+			for (int i=0, size=names.size() ; i<size && result ; i++) {
+				result = result && links.containsKey(names.get(i));
+			}
+			return result;
+		}
+		
+		public void put(LinkId id, TLink link) {
+			List<String> names = id.getNames();
+			for (int i=0, size=names.size() ; i<size ; i++) {
+				links.put(names.get(i),link);	
+			}
+		}
+		
+		public TLink get(LinkId id) {
+			return links.get(id.getNames().get(0));
+		}
+		
+		public void clear() {
+			links.clear();
+		}
+		
+		public String toString() {
+			return links.toString();
+		}
+		
+	}
     
-	private void addProposedToCurrentList(String sieveName, List<TLink> proposed, List<TLink> current, Map<String,TLink> currentHash) {
+	private void addProposedToCurrentList(String sieveName, List<TLink> proposed, List<TLink> current, LinkTable currentHash) {
 		Iterator<TLink> iter = proposed.iterator();
 		while (iter.hasNext()) {
 			TLink newlink = iter.next();
-			if( currentHash.containsKey(newlink.getId1()+newlink.getId2()) ) {
-				System.out.println("MAIN WARNING: overwriting " + currentHash.get(newlink.getId1() + newlink.getId2()) + " with " + newlink);
+			LinkId id = LinkId.of(newlink);
+			if( currentHash.containsLink(id)) {
+				System.out.println("MAIN WARNING: overwriting " + currentHash.get(id) + " with " + newlink);
 				current.remove(newlink);
 			}
 			current.add(newlink);
-			currentHash.put(newlink.getId1()+newlink.getId2(), newlink);
-			currentHash.put(newlink.getId2()+newlink.getId1(), newlink);
+			currentHash.put(id, newlink);
 			newlink.setOrigin(sieveName);
 		}
 	}
@@ -599,7 +737,7 @@ public class Main {
 	 * @param proposedLinks The list of proposed new links.
 	 * @return The number of links removed.
 	 */
-	private int removeConflicts(Map<String,TLink> currentLinksHash, List<TLink> proposedLinks) {
+	private int removeConflicts(LinkTable currentLinksHash, List<TLink> proposedLinks) {
 		List<TLink> removals = new ArrayList<TLink>();
 
 		// Remove duplicates.
@@ -607,18 +745,23 @@ public class Main {
 		if( debug && duplicates > 0 ) System.out.println("\t\tRemoved " + duplicates + " duplicate proposed links.");
 		
 		for( TLink proposed : proposedLinks ) {
-			// Look for a current link that conflicts with this proposed link.
-			TLink current = currentLinksHash.get(proposed.getId1()+proposed.getId2());
-			if (current != null && current.coversSamePair(proposed)) {
-				switch (current.getRelation()) {
-					case UNKNOWN:
-					case VAGUE:
-					case NONE:
-						// no harm in overwriting this weak tlink
-						break;
-					default:
-						removals.add(proposed);
 
+			// Look for a current link that conflicts with this proposed link.
+			LinkId proposedId = LinkId.of(proposed);
+			TLink current = currentLinksHash.get(proposedId);
+			if (current!=null) {
+				LinkId currentId = LinkId.of(current);
+				if (currentId.covers(proposedId)) {
+					switch (current.getRelation()) {
+						case UNKNOWN:
+						case VAGUE:
+						case NONE:
+							// no harm in overwriting this weak tlink
+							break;
+						default:
+							removals.add(proposed);
+	
+					}
 				}
 			}
 		}
@@ -635,8 +778,8 @@ public class Main {
 	 * @param links The list of TLinks to expand with transitive closure.
 	 * @return The list of new links from closure (these are already added to the given lists)
 	 */
-	private List<TLink> closureExpand(String sieveName, List<TLink> links, Map<String,TLink> linksHash) {
-		List<TLink> newlinks = closure.computeClosure(links, false);
+	private List<TLink> closureExpand(String sieveName, List<TLink> links, LinkTable linksHash) {
+		List<TLink> newlinks = closure.computeClosure(links, true);
 		addProposedToCurrentList(sieveName, newlinks, links, linksHash);
 		return newlinks;
 	}
@@ -706,6 +849,9 @@ public class Main {
 		return markupRawText(input,isPath,getDefaultFixedDct());
 	}
 	public SieveDocuments markupRawText(String input, boolean isPath, String dct) {
+		return markupRawText(input,isPath,dct,"input.txt");
+	}	
+	public SieveDocuments markupRawText(String input, boolean isPath, String dct, String dummyFileName) {
 		SieveDocuments docs = new SieveDocuments();
 
 		// If a directory: parse a directory of XML files.
@@ -724,7 +870,7 @@ public class Main {
 				docs.addDocument(doc);
 			}
 		} else {
-			SieveDocument doc = Tempeval3Parser.rawTextToParsed("input.txt", input, parser, gsf);
+			SieveDocument doc = Tempeval3Parser.rawTextToParsed(dummyFileName, input, parser, gsf);
 			docs.addDocument(doc);
 		}
 
@@ -769,7 +915,7 @@ public class Main {
 			}
 		}
 		markupTimexes(docs);
-		resolveTimexCoref(docs);
+		markupTimexesDependencies(docs);
 		runSieves(docs);
 	}
 	

@@ -11,6 +11,7 @@ import caevo.SieveDocuments;
 import caevo.SieveSentence;
 import caevo.TextEvent;
 import caevo.Timex;
+import caevo.Timex.Type;
 import caevo.tlink.EventTimeLink;
 import caevo.tlink.TLink;
 import caevo.util.CaevoProperties;
@@ -70,6 +71,7 @@ public class AdjacentVerbTimex implements Sieve {
     private boolean TIMEX_GOVERNS_EVENT = true;
     private int numInterWords = 0;
     private boolean nounEvent = false;
+    private boolean useMagnitude = false;
 
     // Exclude timex that refer to "quarters" using this regex to be
     // applied to timex.value, since such a timex usually modifies an
@@ -91,6 +93,7 @@ public class AdjacentVerbTimex implements Sieve {
             EVENT_GOVERNS_TIMEX = CaevoProperties.getBoolean("AdjacentVerbTimex.EVENT_GOVERNS_TIMEX", true);
             TIMEX_GOVERNS_EVENT = CaevoProperties.getBoolean("AdjacentVerbTimex.TIMEX_GOVERNS_EVENT", true);
             numInterWords = CaevoProperties.getInt("AdjacentVerbTimex.numInterWords", 0);
+            useMagnitude = CaevoProperties.getBoolean("AdjacentVerbTimex.useMagnitude", useMagnitude);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -211,7 +214,7 @@ public class AdjacentVerbTimex implements Sieve {
                     }
 
 
-                    // heriarchy of preference is already determined in the above conditional blocks
+                    // hierarchy of preference is already determined in the above conditional blocks
                     // take flat unless the event and timex are not within the numInterWords range,
                     // in which case back off to dep. By setting numInterWords low we only use the
                     // flat method when the event and timex are very close together. This seems
@@ -430,28 +433,39 @@ public class AdjacentVerbTimex implements Sieve {
 
     private TLink eventBeforeTimex(int eventToTimexDist, TextEvent event, Timex timex, SieveSentence sent, Tree tree) {
 
+    	TLink tlink = null;
+
         if (eventToTimexDist == 1) {
             // If there are no intervening words, check immediately after the timex for a preposition
-            int timexEndOffset = timex.getTokenOffset() + timex.getTokenLength();
-            // remember, tokens() is 0-based, while token offset is 1-based
-            String nextWordPos = sent.tokens().get(timexEndOffset - 1).getString(CoreAnnotations.PartOfSpeechAnnotation.class);
-            if (nextWordPos.equalsIgnoreCase("IN") || nextWordPos.equalsIgnoreCase("RB")) {
-                // preposition relating to next part of the sentence, or adverb relating to something else - either case applies
-                String nextWord = sent.tokens().get(timexEndOffset - 1).word();
-                if (nextWord.equalsIgnoreCase("before") || nextWord.equalsIgnoreCase("prior")) {
-                    // "[event1 (happened] [timex] before [event2]"
-                    return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.BEFORE);
-                } else if (nextWord.equalsIgnoreCase("after") || nextWord.equalsIgnoreCase("from")) {
-                    return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.AFTER);
-                } // more else clauses?
+            int nextTokenIndex = timex.getTokenOffset() + timex.getTokenLength();
+            
+            // but make sure we didn't reach the end of the sentence
+            if (nextTokenIndex<=sent.tokens().size()) {
+	            // remember, tokens() is 0-based, while token offset is 1-based
+	            String nextWordPos = sent.tokens().get(nextTokenIndex - 1).getString(CoreAnnotations.PartOfSpeechAnnotation.class);
+	            if (nextWordPos.equalsIgnoreCase("IN") || nextWordPos.equalsIgnoreCase("RB")) {
+	                // preposition relating to next part of the sentence, or adverb relating to something else - either case applies
+	                String nextWord = sent.tokens().get(nextTokenIndex - 1).word();
+	                if (nextWord.equalsIgnoreCase("before") || nextWord.equalsIgnoreCase("prior")) {
+	                    // "[event1 (happened] [timex] before [event2]"
+	                	if (!useMagnitude) {
+	                		tlink = new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.BEFORE);
+	                	}
+	                } else if (nextWord.equalsIgnoreCase("after") || nextWord.equalsIgnoreCase("from")) {
+	                	if (!useMagnitude) {
+	                		tlink = new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.AFTER);
+	                	}
+	                } // more else clauses?
+	            }
             }
-            return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.IS_INCLUDED);
+            if (tlink==null && isTime(timex)) {
+            	tlink = new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.IS_INCLUDED);
+            }
         } else {
             // First, determine if there is a preposition immediately
             // preceding the timex
             int precTimexIndex = timex.getTokenOffset() - 1;
             String precTimexPos = posTagFromTree(tree, sent, precTimexIndex);
-            TLink tlink;
             // IN is the tag for prepositions and suborinating conjunctions
             if (precTimexPos != null && (precTimexPos.equals("IN") || precTimexPos.equals("TO"))) {
                 // Different rules for different prepositions
@@ -465,8 +479,8 @@ public class AdjacentVerbTimex implements Sieve {
             else {
                 tlink = new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.VAGUE);
             }
-            return tlink;
         }
+        return tlink;
     }
 
     /**
@@ -553,18 +567,27 @@ public class AdjacentVerbTimex implements Sieve {
         return TreeOperator.indexToPOSTag(tree, index);
     }
 
+    private boolean isTime(Timex timex) {
+    	return timex.getType()==Type.DATE || timex.getType()==Type.TIME; 
+    }
+
+    private boolean isDuration(Timex timex) {
+    	return timex.getType()==Type.DURATION; 
+    }
+
+    
     private TLink applyPrepVerbTimexRules(TextEvent event, Timex timex, String prepText) {
         if ("between".equalsIgnoreCase(prepText)) {
             // "between" never appears with a single timex...
             between_and = new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.BEGUN_BY);
             return between_and;
-        } else if (prepText.equals("in")) {
+        } else if (prepText.equals("in") && isTime(timex)) {
             return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.IS_INCLUDED);
-        } else if (prepText.equals("on")) {
+        } else if (prepText.equals("on") && isTime(timex)) {
             return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.IS_INCLUDED);
-        } else if (prepText.equals("for")) {
+        } else if (prepText.equals("for") && isDuration(timex)) {
             return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.DURING);
-        } else if (prepText.equals("at")) {
+        } else if (prepText.equals("at") && isDuration(timex)) {
             return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.DURING);
         } else if (prepText.equals("by")) {
             return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.VAGUE);
@@ -572,7 +595,7 @@ public class AdjacentVerbTimex implements Sieve {
             return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.IS_INCLUDED);
         } else if (prepText.equals("during")) {
             return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.IS_INCLUDED);
-        } else if (prepText.equals("throughout")) {
+        } else if (prepText.equals("throughout") && isDuration(timex)) {
             return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.DURING);
         } else if (prepText.equals("within")) {
             return new EventTimeLink(event.getEiid(), timex.getTid(), TLink.Type.IS_INCLUDED);

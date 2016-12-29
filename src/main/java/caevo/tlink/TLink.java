@@ -17,6 +17,7 @@ public class TLink implements Comparable<TLink> {
   public static final String REL_ELEM = "relation";
   public static final String CLOSED_ELEM = "closed";
   public static final String ORIGIN_ELEM = "origin";
+  public static final String MAG_ELEM = "magnitude";
   
   public enum Type { BEFORE, AFTER, IBEFORE, IAFTER, INCLUDES, IS_INCLUDED, BEGINS, BEGUN_BY, ENDS, ENDED_BY, SIMULTANEOUS,
     NONE, VAGUE, UNKNOWN, OVERLAP, BEFORE_OR_OVERLAP, OVERLAP_OR_AFTER, DURING }
@@ -83,6 +84,7 @@ public class TLink implements Comparable<TLink> {
   protected String origin = null; // originating source of this TLink (optional)
   protected double relationConfidence = 0.0; // probability of the relation
 	protected SieveDocument document;
+	protected String idM; // the tid of the magnitude timex 
 
   public TLink() { }
 
@@ -95,30 +97,33 @@ public class TLink implements Comparable<TLink> {
     else 
     	this.closed = false;
     this.origin = el.getAttributeValue(TLink.ORIGIN_ELEM);
+    this.idM = el.getAttributeValue(TLink.MAG_ELEM);
   }
 
-  public TLink(String id1, String id2, TLink.Type rel) {
-    this(id1, id2, rel, false);
+  public TLink(String id1, String id2, TLink.Type rel, String idM) {
+    this(id1, id2, rel, false, idM);
   }
   
-  public TLink(String id1, String id2, TLink.Type rel, boolean closure) {
+  public TLink(String id1, String id2, TLink.Type rel, boolean closure, String idM) {
     this.id1 = id1;
     this.id2 = id2;
     this.relation = rel;
     this.closed = closure;
+    this.idM = idM;
   }
   
-  public TLink(String id1, String id2, String rel, boolean closure) {
-    this(id1,id2,rel);
+  public TLink(String id1, String id2, String rel, boolean closure, String idM) {
+    this(id1,id2,rel,idM);
     this.closed = closure;
   }
 
-  public TLink(String id1, String id2, String rel) {
+  public TLink(String id1, String id2, String rel, String idM) {
     this.relation = TLink.normalizeRelation(rel);
     this.originalRelation = rel;
 //    System.out.println("Creating new tlink (mode " + currentMode + "): " + e1 + " " + e2 + " rel=" + rel);
     this.id1 = id1;
     this.id2 = id2;
+    this.idM = idM;
   }
   
   /**
@@ -200,9 +205,11 @@ public class TLink implements Comparable<TLink> {
   public void setClosure(boolean closed) { this.closed = closed; }
   public void setId1(String id) { id1 = id; }
   public void setId2(String id) { id2 = id; }
+  public void setIdM(String id) { idM = id; }
   
   public String getId1() { return this.id1; }
   public String getId2() { return this.id2; }
+  public String getIdM() { return this.idM; }
   public TLink.Type getRelation() { return this.relation; }
   public double getRelationConfidence() { return this.relationConfidence; }
   public String getOriginalRelation() { return this.originalRelation; }
@@ -218,12 +225,14 @@ public class TLink implements Comparable<TLink> {
   	el.setAttribute(TLink.REL_ELEM, this.relation.toString());
   	el.setAttribute(TLink.CLOSED_ELEM, String.valueOf(this.closed));
   	if( this.origin != null ) el.setAttribute(TLink.ORIGIN_ELEM, this.origin);
+  	if( this.idM != null ) el.setAttribute(TLink.MAG_ELEM, this.idM);
   	return el;
   }
 
   public String toString() {
     String str = this.id1 + "->" + this.id2 + "=" + this.relation.toString();
-    if( this.origin != null ) str += " (" + this.origin + ")";
+    if( this.idM != null ) str += " (by " + this.idM + ")";
+    if( this.origin != null ) str += " (of " + this.origin + ")";
     return str;
   }
   
@@ -245,29 +254,47 @@ public class TLink implements Comparable<TLink> {
    * @return True if the same, false otherwise.
    */
   public boolean compareToTLink(TLink other) {
-    // Exactly the same.
-    if( this.relation == other.relation && this.id1.equals(other.id1) && this.id2.equals(other.id2) )
-      return true;
-    // The event IDs might be swapped, so check for the same inverted relation.
-    else if( this.id1.equals(other.id2) && this.id2.equals(other.id1) ) {
-      if( TLink.invertRelation(this.relation) == other.relation )
-        return true;
+  	boolean result = false;
+
+  	// Exactly the same.
+    if( this.relation == other.relation && 
+    		this.id1.equals(other.id1) && 
+    		this.id2.equals(other.id2) &&
+    		(this.idM==null ? other.idM==null : this.idM.equals(other.idM))) {
+    	result = true;
     }
-    return false;
+    
+    // The event IDs might be swapped, so check for the same inverted relation.
+    else if( TLink.invertRelation(this.relation) == other.relation && 
+    		this.id1.equals(other.id2) && 
+    		this.id2.equals(other.id1) &&
+    		(this.idM==null ? other.idM==null : this.idM.equals(other.idM))) {
+      return true;
+    }
+    
+    return result;
   }
   
   /**
    * True if the two tlinks contain the same events, but different relations.
    */
   public boolean conflictsWith(TLink other) {
-    if( this.relation != other.relation && this.id1.equals(other.id1) && this.id2.equals(other.id2) )
-      return true;
-    // The event IDs might be swapped, so check for different inverted relations.
-    else if( this.id1.equals(other.id2) && this.id2.equals(other.id1) ) {
-      if( TLink.invertRelation(relation) != other.relation )
-        return true;
+  	boolean result = false;
+  	
+  	if( this.relation != other.relation && 
+  			this.id1.equals(other.id1) && 
+  			this.id2.equals(other.id2)) {
+  		result = true;
+  	}
+  	
+    // The event IDs might be swapped, so check for the same inverted relation.
+    else if( TLink.invertRelation(this.relation) != other.relation && 
+    		this.id1.equals(other.id2) && 
+    		this.id2.equals(other.id1)) {
+      return result;
     }
-    return false;
+  	
+    return result;
   }
   
   /**
@@ -305,13 +332,13 @@ public class TLink implements Comparable<TLink> {
 	public static TLink clone(TLink link) {
 		TLink linkclone = null;
 		if( link instanceof EventEventLink )
-			linkclone = new EventEventLink(link.getId1(), link.getId2(), link.getRelation());
+			linkclone = new EventEventLink(link.getId1(), link.getId2(), link.getRelation(), link.getIdM());
 		else if( link instanceof EventTimeLink )
 			linkclone = new EventTimeLink(link.getId1(), link.getId2(), link.getRelation());
 		else if( link instanceof TimeTimeLink )
 			linkclone = new TimeTimeLink(link.getId1(), link.getId2(), link.getRelation());
 		else
-			linkclone = new TLink(link.getId1(), link.getId2(), link.getRelation());
+			linkclone = new TLink(link.getId1(), link.getId2(), link.getRelation(), link.getIdM());
 		
 		linkclone.setOrigin(link.getOrigin());
 		linkclone.setRelationConfidence(link.getRelationConfidence());
@@ -331,7 +358,10 @@ public class TLink implements Comparable<TLink> {
         if (closed != tLink.closed) return false;
         if (!id1.equals(tLink.id1)) return false;
         if (!id2.equals(tLink.id2)) return false;
-        if (originalRelation != null ? !originalRelation.equals(tLink.originalRelation) : tLink.originalRelation != null)
+        if (idM != null ? !idM.equals(tLink.idM) : tLink.idM != null) return false;
+        if (originalRelation != null 
+        			? !originalRelation.equals(tLink.originalRelation) 
+        			: tLink.originalRelation != null)
             return false;
         return document != null ? document.equals(tLink.document) : tLink.document == null;
     }
@@ -342,6 +372,7 @@ public class TLink implements Comparable<TLink> {
         long temp;
         result = id1.hashCode();
         result = 31 * result + id2.hashCode();
+        result = 31 * result + idM.hashCode();
         result = 31 * result + (originalRelation != null ? originalRelation.hashCode() : 0);
         result = 31 * result + (closed ? 1 : 0);
         temp = Double.doubleToLongBits(relationConfidence);

@@ -4,6 +4,8 @@ import caevo.SieveDocument;
 import caevo.SieveDocuments;
 import caevo.SieveSentence;
 import caevo.TextEvent;
+import caevo.Timex;
+import caevo.Timex.Type;
 import caevo.tlink.EventEventLink;
 import caevo.tlink.TLink;
 import caevo.util.CaevoProperties;
@@ -14,6 +16,7 @@ import edu.stanford.nlp.trees.TypedDependency;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -68,7 +71,7 @@ import java.util.List;
  * @author cassidy
  */
 public class XCompDepSieve implements Sieve {
-	public boolean debug = false;
+	public boolean debug = true;
 	private boolean useExtendedTense = true;
 	
 	/**
@@ -148,8 +151,45 @@ public class XCompDepSieve implements Sieve {
 						}
 						if (relType.equals("advcl")) { 
 							// p=0.65	15 of 23	Non-VAGUE:	p=0.71	15 of 21
-							tlink = classifyEventPair_advcl(eGov, eDep, sent, deps);
+							// Very useful for cases of Event-Event relation with/without a specific duration. This, 
+							// and the 'nmod' case (below) are the cases based on which we identify the magnitude property 
+							// of Event-Event relations. 
+							// Examples: 
+							// The payment of reparations was suspended <3 years> after the Great Depression arrived.
+							// Ben Gurion returned as Minister of Defense <one year> after he resigned.
+							// More details:
+							// The 'advcl' dependency connects between the verbs (e.g. advcl(suspended,arrived)), and a
+							// 'mark' dependency connects between the second verb and the time relation (e.g. mark(arrived,after))
+							List<String> markers = Arrays.asList("mark","advmod");
+							tlink = classifyEventPair_advcl(eGov, eDep, sent, deps, markers);
 						}
+						
+						if (relType.startsWith("nmod")) { 
+							// Similar to 'advcl' - useful for Event-Event relations. While 'advck' is used mostly
+							// for Event-Event relations described by verb-verb, this tag is used for verb-noun cases. 
+							// Example:
+							// Begin resigned <2 weeks> after the death of his wife
+							// More details:
+							// As in the case of 'advcl', the nmod relation connects between the two verbs, but the 
+							// Stanford's  enhanced notation is now putting the relation as part of the dependency 
+							// name, so we get nmod:after(resigned-2, death-5). We could also get 'nmod:before' if 
+							// we had 'before' in the sentence. Another difference from 'advcl' is that the dependency 
+							// that links to the concrete relation token is now 'case', as in: case(death-5, after-3), 
+							// rather than 'mark'.
+							List<String> markers = Arrays.asList("case");
+							tlink = classifyEventPair_advcl(eGov, eDep, sent, deps, markers);
+						}
+						
+						if (relType.startsWith("dep")) {
+							// Similar to 'advcl' and 'nmod' above - we use this dep to identify Event-Event relations.
+							// In general this is a fall-back strategy: the parser is expected to tag the events
+							// using 'advcl' or 'nmod' but sometimes it just puts 'dep'. For example:
+							// Mary arrived yesterday but John left 2 days before.
+							// We get: dep(arrived-2, left-6)
+							// For such cases we check if we can identify a timex adjacent to the second event, and  
+							// and create a link accordingly. 
+						}						
+
 						if (relType.equals("conj_but")) { 
 							// p=0.50	7 of 14	Non-VAGUE:	p=0.78	7 of 9
 							tlink = classifyEventPair_conj_but(eGov, eDep, sent, deps);
@@ -229,32 +269,29 @@ public class XCompDepSieve implements Sieve {
 		return new EventEventLink(eGov.getEiid(), eDep.getEiid(), TLink.Type.BEFORE);
 	}
 
-	private EventEventLink classifyEventPair_advcl(TextEvent eGov, TextEvent eDep, SieveSentence sent, List<TypedDependency> deps) {
+	private EventEventLink classifyEventPair_advcl(TextEvent eGov, TextEvent eDep, SieveSentence sent, List<TypedDependency> deps, List<String> markers) {
 		// Find the "marker" (i.e. the word that introduces the adverbial clause complement (i.e. the dependent)).
 		String mark = null;
-		for (TypedDependency td : deps) {
-			String rel = td.reln().toString();
-			if (td.gov().index() == eDep.getIndex()) {
-				if ( rel.equals("mark") ) { // sometimes advmod plays role of mark
-					mark = td.dep().value();
-					if( debug ) System.out.printf("\ngov:%s dep:%s mark:%s\n%s\n", eGov.getString(), eDep.getString(), mark, sent.sentence());
-				 }
-			  }
-		   }
-		 if (mark == null) {
-			 for (TypedDependency td : deps) {
-					String rel = td.reln().toString();
-					if (td.gov().index() == eDep.getIndex()) {
-						if ( rel.equals("advmod") ) { // sometimes advmod plays role of mark
-							mark = td.dep().value();
-							if( debug ) System.out.printf("\ngov:%s dep:%s mark:%s\n%s\n", eGov.getString(), eDep.getString(), mark, sent.sentence());
-					 }
+		Timex magnitude = null;
+		for (int markerId=0, markersCount=markers.size() ; markerId<markersCount && mark==null; markerId++) {
+			String markerStr = markers.get(markerId);
+			for (int depId=0, size=deps.size() ; depId<size && mark==null; depId++) {
+				TypedDependency td = deps.get(depId);
+				String rel = td.reln().toString();
+				if (td.gov().index() == eDep.getIndex()) {
+					if ( rel.equals(markerStr) ) {
+						mark = td.dep().value();
+						magnitude = checkMagnitude(sent, td.dep().index());
+						if( debug ) {
+							System.out.printf("\ngov:%s dep:%s mark:%s magnitude:%s\n%s\n", eGov.getString(), eDep.getString(), mark,
+									magnitude!=null ? magnitude.toString() : "none", sent.sentence());
+						}
 					}
-				 }
-		 		}
-		 
-		 
-		 
+				}
+			}
+		}
+
+		String mId = magnitude!=null ? magnitude.getTid() : null; 
 		 
 		 // Apply rules
 		 
@@ -265,10 +302,10 @@ public class XCompDepSieve implements Sieve {
 			return new EventEventLink(eGov.getEiid(), eDep.getEiid(), TLink.Type.AFTER);
 		}
 		if (mark != null && mark.toLowerCase().equals("after")) {
-			return new EventEventLink(eGov.getEiid(), eDep.getEiid(), TLink.Type.AFTER);
+			return new EventEventLink(eGov.getEiid(), eDep.getEiid(), TLink.Type.AFTER, mId);
 		}
 		if (mark != null && mark.toLowerCase().equals("before")) {
-			return new EventEventLink(eGov.getEiid(), eDep.getEiid(), TLink.Type.BEFORE);
+			return new EventEventLink(eGov.getEiid(), eDep.getEiid(), TLink.Type.BEFORE, mId);
 		}
 		if (mark != null && mark.toLowerCase().equals("since")) {
 			return new EventEventLink(eGov.getEiid(), eDep.getEiid(), TLink.Type.AFTER);
@@ -288,6 +325,27 @@ public class XCompDepSieve implements Sieve {
 		}
 	}
 
+	private Timex checkMagnitude(SieveSentence sent, int tokenId) {
+		Timex magnitude = null;
+		List<Timex> timexList = sent.timexes();
+
+		// go over all timexes 
+  	for (int timexId = 0, size=timexList.size() ; timexId<size && magnitude==null ; timexId++) {
+  		
+  		// the current timex
+  		Timex timex = sent.timexes().get(timexId);
+  		
+  		// check if we have a duration right before the mark/case
+  		int timexTokenEnd = timex.getTokenOffset() + timex.getTokenLength()-1; 
+  		if (timexTokenEnd==tokenId-1 && timex.getType()==Type.DURATION) {
+  			magnitude = timex;
+  		}
+  		
+  	}
+  	return magnitude;
+	}
+	
+	
 	private EventEventLink classifyEventPair_nsubj(TextEvent eGov, TextEvent eDep, SieveSentence sent) {
 		TextEvent.Class eGovClass = eGov.getTheClass();
 		if (eGovClass == TextEvent.Class.ASPECTUAL) {

@@ -226,7 +226,7 @@ public class Closure {
    * @return
    */
   public List<TLink> computeClosure(List<TLink> relations) {
-    return computeClosure(relations, false);
+    return computeClosure(relations, true);
   }
 
   /**

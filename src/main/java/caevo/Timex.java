@@ -6,7 +6,6 @@ import java.util.regex.Pattern;
 
 import org.jdom.Namespace;
 
-import caevo.Timex.Type;
 import caevo.util.Pair;
 import caevo.util.TimeValueParser;
 
@@ -31,7 +30,8 @@ public class Timex {
   public static final String TEXT_ATT = "text";
   public static final String OFFSET_ATT = "offset";
   public static final String LENGTH_ATT = "length";
-  public static final String TEMPOP_ATT = "temporalOperation";
+  public static final String BEGIN_POINT_ATT = "beginPoint";
+  public static final String END_POINT_ATT = "endPoint";
   	
   public enum Type { DATE, TIME, DURATION, SET };
   public enum DocumentFunction { CREATION_TIME, EXPIRATION_TIME, MODIFICATION_TIME, PUBLICATION_TIME, RELEASE_TIME, RECEPTION_TIME, NONE };
@@ -51,7 +51,8 @@ public class Timex {
   private boolean temporalFunction = false;
   private String preposition; // feature not in Timebank
   private Pair<Calendar, Calendar> timeRange;
-  //private String temporalOperation; 
+  private String beginPoint;
+  private String endPoint;
   
   public Timex() {
   
@@ -72,6 +73,8 @@ public class Timex {
     this.mod = timex.getMod(); 
     this.documentFunction = timex.getDocumentFunction();
     this.temporalFunction = timex.getTemporalFunction();
+    this.beginPoint = timex.beginPoint;
+    this.endPoint = timex.endPoint;
   }
   
   /**
@@ -89,6 +92,8 @@ public class Timex {
     this.mod = timex.getMod(); 
     this.documentFunction = timex.getDocumentFunction();
     this.temporalFunction = timex.getTemporalFunction();
+    this.beginPoint = timex.beginPoint;
+    this.endPoint = timex.endPoint;
   }
 
   /**
@@ -106,10 +111,12 @@ public class Timex {
     this.mod = timex.getMod(); 
     this.documentFunction = timex.getDocumentFunction();
     this.temporalFunction = timex.getTemporalFunction();
+    this.beginPoint = timex.beginPoint;
+    this.endPoint = timex.endPoint;
   }
   
   /**
-   * Copy Constructor with new value specified
+   * Constructor with only a value
    * @param timex
    */
   public Timex(String val) { 	
@@ -135,7 +142,8 @@ public class Timex {
     
     this.temporalFunction = el.getAttributeValue(Timex.TEMPFUNC_ATT).equalsIgnoreCase("true");
     
-    //this.temporalOperation = el.getAttributeValue(Timex.TEMPOP_ATT);
+    this.beginPoint = el.getAttributeValue(Timex.BEGIN_POINT_ATT);
+    this.endPoint = el.getAttributeValue(Timex.END_POINT_ATT);
   }
 
 	//<TIMEX3 mod="APPROX" endPoint="t42" tid="t39" temporalFunction="false" type="DURATION" functionInDocument="NONE" value="P2Y" >
@@ -167,6 +175,9 @@ public class Timex {
     	text = el.getTextContent();
     	if( text != null && text.length() > 0 ) this.text = text;
     }
+    
+    this.beginPoint = el.getAttribute(Timex.BEGIN_POINT_ATT);
+    this.endPoint = el.getAttribute(Timex.END_POINT_ATT);
   }
 
   public void setText(String text) { 
@@ -211,10 +222,17 @@ public class Timex {
   	this.documentFunction = func; 
   }
   
-  /*
-  public void setTemporalOperation(String tempOp) {
-  	this.temporalOperation = tempOp;
-  }*/
+  public void setMod(Mod mod) { 
+  	this.mod = mod;
+  }
+
+  public void setBeginPoint(String beginPoint) { 
+  	this.beginPoint = beginPoint;
+  }
+
+  public void setEndPoint(String endPoint) { 
+  	this.endPoint = endPoint;
+  }
 
   public int getTokenOffset() { return this.tokenOffset; }
   public int getTokenLength() { return this.tokenLength; }
@@ -227,8 +245,9 @@ public class Timex {
   public String getText() { return this.text; }
   public DocumentFunction getDocumentFunction() { return this.documentFunction; }
   public boolean getTemporalFunction() { return this.temporalFunction; }
-  //public String getTemporalOperation() { return this.temporalOperation; }
   public String getPrep() { return this.preposition; }
+  public String getBeginPoint() { return this.beginPoint; }
+  public String getEndPoint() { return this.endPoint; }
   
   public Pair<Calendar, Calendar> getRange() {
   	return getRange(null);

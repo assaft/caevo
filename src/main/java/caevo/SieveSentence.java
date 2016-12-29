@@ -33,8 +33,9 @@ public class SieveSentence {
   private List<CoreLabel> tokens;
   private List<TextEvent> events; // of TextEvent objects
   private List<Timex> timexes; // of Timex objects
+  private List<Timex> innerTimexes; 
 
-  public SieveSentence(SieveDocument doc, int sid, String sentence, String strParse, String strDeps, List<CoreLabel> tokens, List<TextEvent> events, List<Timex> timexes) {
+  public SieveSentence(SieveDocument doc, int sid, String sentence, String strParse, String strDeps, List<CoreLabel> tokens, List<TextEvent> events, List<Timex> timexes, List<Timex> innerTimexes) {
   	this.parent = doc;
   	this.sid = sid;
   	this.sentence = sentence;
@@ -43,9 +44,11 @@ public class SieveSentence {
   	this.tokens = tokens;
   	this.events = events;
   	this.timexes = timexes;
+  	this.innerTimexes = innerTimexes;
   	
   	if( this.events == null ) 	this.events = new ArrayList<TextEvent>();
   	if( this.timexes == null ) 	this.timexes = new ArrayList<Timex>();
+  	if (this.innerTimexes == null ) this.innerTimexes = new ArrayList<Timex>();
   }
   
   public SieveSentence(Element el, Namespace ns) {
@@ -54,6 +57,7 @@ public class SieveSentence {
     	if( sidStr != null ) sid = Integer.parseInt(sidStr);
       events = new ArrayList<TextEvent>();
       timexes = new ArrayList<Timex>();
+      innerTimexes = new ArrayList<Timex>();
       sentence = el.getChildTextTrim(InfoFile.SENT_ELEM,ns);
       parseStr = el.getChildTextTrim(InfoFile.PARSE_ELEM,ns);
       depsStr = el.getChildTextTrim(InfoFile.DEPS_ELEM,ns);
@@ -105,6 +109,17 @@ public class SieveSentence {
   	}
   }
   
+  public void addInnerTimexes(List<Timex> newInnerTimexes) {
+  	if( newInnerTimexes != null ) {
+  		if( innerTimexes == null )
+  			innerTimexes = new ArrayList<Timex>();
+
+  		for (Timex timex : newInnerTimexes)
+  			timex.setSid(this.sid);
+  		innerTimexes.addAll(newInnerTimexes);
+  	}
+  }
+  
   public static SieveSentence fromXML(Element el) {
   	Namespace ns = Namespace.getNamespace(SieveDocuments.INFO_NS);
   	return new SieveSentence(el, ns);
@@ -142,6 +157,10 @@ public class SieveSentence {
       for( Timex te : timexes )
         timexesElem.addContent(te.toElement(ns));
 
+    if( timexes != null )
+      for( Timex te : innerTimexes )
+        timexesElem.addContent(te.toElement(ns));
+    
     // Add the typed dependencies
     Element depsElem = new Element(SieveDocuments.DEPS_ELEM,ns);
     depsElem.setText(depsStr);
@@ -217,4 +236,6 @@ public class SieveSentence {
   public List<CoreLabel> tokens() { return tokens; }
   public List<TextEvent> events() { return events; }
   public List<Timex> timexes() { return timexes; }
+  public List<Timex> innerTimexes() { return innerTimexes; }
+
 }

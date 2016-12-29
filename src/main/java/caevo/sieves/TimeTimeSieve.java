@@ -46,7 +46,7 @@ public class TimeTimeSieve implements Sieve {
 	}
 	
 	public List<TLink> annotateBySentencePair(SieveDocument doc) {
-		List<List<Timex>> sentenceTimexes = doc.getTimexesBySentence();
+		List<List<Timex>> sentenceTimexes = doc.getTimexesBySentence(true);
 		List<TLink> proposed = new ArrayList<TLink>();
 		Timex creationTime = (doc.getDocstamp() ==  null || doc.getDocstamp().isEmpty()) ? null : doc.getDocstamp().get(0);
 		
@@ -77,7 +77,7 @@ public class TimeTimeSieve implements Sieve {
 		
 		Timex creationTime = doc.getDocstamp().get(0);
 		
-		List<List<Timex>> allTimexes = doc.getTimexesBySentence();
+		List<List<Timex>> allTimexes = doc.getTimexesBySentence(true);
 		List<TLink> proposed = new ArrayList<TLink>();
 		
 		for (List<Timex> timexes : allTimexes) {
